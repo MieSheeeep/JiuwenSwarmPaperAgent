@@ -1,0 +1,26 @@
+.venv/
+runtime/
+__pycache__/
+*.pyc
+.env
+*.key
+*.pem
+
+# Local competition uploads contain private review tokens and screenshots.
+/submission/
+/logs/
+/config.local/
+config.local.yaml
+PaperReview-AccessToken.txt
+*AccessToken*
+*.zip
+
+# Regenerable document build files and machine-specific audit.
+*.aux
+*.log
+*.out
+*.toc
+/output/paper/preview-page-*.png
+/output/verification.json
+.DS_Store
+Thumbs.db

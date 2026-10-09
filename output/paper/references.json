@@ -1,0 +1,26 @@
+[
+  {
+    "key": "liu2023",
+    "title": "Lost in the Middle: How Language Models Use Long Contexts",
+    "authors": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang",
+    "year": 2023,
+    "url": "https://arxiv.org/abs/2307.03172",
+    "finding": "The authors evaluate multi-document question answering and key-value retrieval and report sensitivity to relevant-information position."
+  },
+  {
+    "key": "packer2023",
+    "title": "MemGPT: Towards LLMs as Operating Systems",
+    "authors": "Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion Stoica, and Joseph E. Gonzalez",
+    "year": 2023,
+    "url": "https://arxiv.org/abs/2310.08560",
+    "finding": "The authors introduce virtual context management inspired by hierarchical memory and evaluate document analysis and multi-session chat."
+  },
+  {
+    "key": "yao2022",
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+    "authors": "Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao",
+    "year": 2022,
+    "url": "https://arxiv.org/abs/2210.03629",
+    "finding": "The authors interleave reasoning and actions on language and interactive tasks. This pilot uses the framework ReActAgent class but disables tools and does not evaluate action planning."
+  }
+]

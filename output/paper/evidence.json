@@ -1,0 +1,354 @@
+{
+  "results": {
+    "manifest": {
+      "model": "deepseek-flash",
+      "provider": "OpenAI",
+      "api_base": "https://api.deepseek.com",
+      "seed": 20261008,
+      "tasks": 24,
+      "policies": [
+        "full",
+        "recent",
+        "retrieve",
+        "retrieve_summary"
+      ],
+      "history_budget_proxy_tokens": 512,
+      "summary_budget_proxy_tokens": 256,
+      "tokenizer_proxy": "cl100k_base",
+      "temperature": 0,
+      "top_p": 1,
+      "thinking": "disabled",
+      "answer_max_tokens": 160,
+      "summary_max_tokens": 384,
+      "concurrency": 2,
+      "dataset_sha256": "f50c9905952d979eaba4d8c0999b4dcf92c32c41d9affcf08e3d9e64d5bffb97",
+      "note": "Synthetic pilot; full-history reference is unbounded. No held-out benchmark or novelty claim. Summary overhead is included."
+    },
+    "methods": [
+      {
+        "policy": "full",
+        "tasks": 24,
+        "correct": 24,
+        "exact_accuracy": 1.0,
+        "wilson_95": [
+          0.8620237953250264,
+          1
+        ],
+        "field_accuracy": 1.0,
+        "api_failures": 0,
+        "api_calls": 24,
+        "input_tokens": 74216,
+        "output_tokens": 449,
+        "total_tokens": 74665,
+        "cache_tokens": 2944,
+        "reasoning_tokens": 0,
+        "mean_tokens_per_task": 3111.0416666666665,
+        "mean_seconds_per_task": 0.714322112500137,
+        "mean_history_proxy_tokens": 2917.5833333333335
+      },
+      {
+        "policy": "recent",
+        "tasks": 24,
+        "correct": 6,
+        "exact_accuracy": 0.25,
+        "wilson_95": [
+          0.11999366228595243,
+          0.4489944400515343
+        ],
+        "field_accuracy": 0.25,
+        "api_failures": 0,
+        "api_calls": 24,
+        "input_tokens": 14870,
+        "output_tokens": 413,
+        "total_tokens": 15283,
+        "cache_tokens": 384,
+        "reasoning_tokens": 0,
+        "mean_tokens_per_task": 636.7916666666666,
+        "mean_seconds_per_task": 0.7230030041666851,
+        "mean_history_proxy_tokens": 493.3333333333333
+      },
+      {
+        "policy": "retrieve",
+        "tasks": 24,
+        "correct": 24,
+        "exact_accuracy": 1.0,
+        "wilson_95": [
+          0.8620237953250264,
+          1
+        ],
+        "field_accuracy": 1.0,
+        "api_failures": 0,
+        "api_calls": 24,
+        "input_tokens": 3738,
+        "output_tokens": 474,
+        "total_tokens": 4212,
+        "cache_tokens": 0,
+        "reasoning_tokens": 0,
+        "mean_tokens_per_task": 175.5,
+        "mean_seconds_per_task": 0.6761857916668154,
+        "mean_history_proxy_tokens": 38.75
+      },
+      {
+        "policy": "retrieve_summary",
+        "tasks": 24,
+        "correct": 24,
+        "exact_accuracy": 1.0,
+        "wilson_95": [
+          0.8620237953250264,
+          1
+        ],
+        "field_accuracy": 1.0,
+        "api_failures": 0,
+        "api_calls": 48,
+        "input_tokens": 6820,
+        "output_tokens": 788,
+        "total_tokens": 7608,
+        "cache_tokens": 0,
+        "reasoning_tokens": 0,
+        "mean_tokens_per_task": 317.0,
+        "mean_seconds_per_task": 1.4309869249999185,
+        "mean_history_proxy_tokens": 15.25
+      }
+    ],
+    "groups": [
+      {
+        "policy": "full",
+        "group_key": "family",
+        "group": "lookup",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "full",
+        "group_key": "family",
+        "group": "partial",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "full",
+        "group_key": "family",
+        "group": "revision",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "full",
+        "group_key": "position",
+        "group": "early",
+        "n": 9,
+        "correct": 9
+      },
+      {
+        "policy": "full",
+        "group_key": "position",
+        "group": "late",
+        "n": 6,
+        "correct": 6
+      },
+      {
+        "policy": "full",
+        "group_key": "position",
+        "group": "middle",
+        "n": 9,
+        "correct": 9
+      },
+      {
+        "policy": "recent",
+        "group_key": "family",
+        "group": "lookup",
+        "n": 8,
+        "correct": 2
+      },
+      {
+        "policy": "recent",
+        "group_key": "family",
+        "group": "partial",
+        "n": 8,
+        "correct": 2
+      },
+      {
+        "policy": "recent",
+        "group_key": "family",
+        "group": "revision",
+        "n": 8,
+        "correct": 2
+      },
+      {
+        "policy": "recent",
+        "group_key": "position",
+        "group": "early",
+        "n": 9,
+        "correct": 0
+      },
+      {
+        "policy": "recent",
+        "group_key": "position",
+        "group": "late",
+        "n": 6,
+        "correct": 6
+      },
+      {
+        "policy": "recent",
+        "group_key": "position",
+        "group": "middle",
+        "n": 9,
+        "correct": 0
+      },
+      {
+        "policy": "retrieve",
+        "group_key": "family",
+        "group": "lookup",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "retrieve",
+        "group_key": "family",
+        "group": "partial",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "retrieve",
+        "group_key": "family",
+        "group": "revision",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "retrieve",
+        "group_key": "position",
+        "group": "early",
+        "n": 9,
+        "correct": 9
+      },
+      {
+        "policy": "retrieve",
+        "group_key": "position",
+        "group": "late",
+        "n": 6,
+        "correct": 6
+      },
+      {
+        "policy": "retrieve",
+        "group_key": "position",
+        "group": "middle",
+        "n": 9,
+        "correct": 9
+      },
+      {
+        "policy": "retrieve_summary",
+        "group_key": "family",
+        "group": "lookup",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "retrieve_summary",
+        "group_key": "family",
+        "group": "partial",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "retrieve_summary",
+        "group_key": "family",
+        "group": "revision",
+        "n": 8,
+        "correct": 8
+      },
+      {
+        "policy": "retrieve_summary",
+        "group_key": "position",
+        "group": "early",
+        "n": 9,
+        "correct": 9
+      },
+      {
+        "policy": "retrieve_summary",
+        "group_key": "position",
+        "group": "late",
+        "n": 6,
+        "correct": 6
+      },
+      {
+        "policy": "retrieve_summary",
+        "group_key": "position",
+        "group": "middle",
+        "n": 9,
+        "correct": 9
+      }
+    ],
+    "paired": [
+      {
+        "reference": "full",
+        "candidate": "recent",
+        "reference_only": 18,
+        "candidate_only": 0,
+        "both_correct": 6,
+        "both_wrong": 0,
+        "exact_mcnemar_p_exploratory": 7.62939453125e-06
+      },
+      {
+        "reference": "full",
+        "candidate": "retrieve",
+        "reference_only": 0,
+        "candidate_only": 0,
+        "both_correct": 24,
+        "both_wrong": 0,
+        "exact_mcnemar_p_exploratory": 1.0
+      },
+      {
+        "reference": "full",
+        "candidate": "retrieve_summary",
+        "reference_only": 0,
+        "candidate_only": 0,
+        "both_correct": 24,
+        "both_wrong": 0,
+        "exact_mcnemar_p_exploratory": 1.0
+      }
+    ],
+    "total_api_calls": 120,
+    "total_api_tokens": 101768,
+    "interpretation": "Synthetic convenience sample; Wilson intervals are descriptive. Paired tests are exploratory, not corrected for multiple comparisons. No equivalence or generalization claim."
+  },
+  "outline": {
+    "abstract": "Scope, paired comparison, observed scores, and explicitly synthetic-pilot conclusion.",
+    "introduction": "Question: which history policy preserves configuration state while reducing API tokens?",
+    "related_work": "Position sensitivity, virtual context management, and ReAct; use only the provided verified references.",
+    "methods": "24 deterministic synthetic histories, 60 records, 8 tasks in each family, early/middle/late placements, field-wise overwrites; lexical retrieval, proxy budgets, isolated sessions, paired scoring, all-call token accounting.",
+    "discussion": "Explain recent-window failures by omitted evidence; no accuracy gain from extra summaries; easy identifier matching favors retrieval; no novelty, equivalence, real-world agent, or long-context robustness claim.",
+    "conclusion": "Reusable opt-in JiuwenSwarm rail and verified experiment pipeline, requiring broader evaluation before research claims."
+  },
+  "references": [
+    {
+      "key": "liu2023",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "authors": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang",
+      "year": 2023,
+      "url": "https://arxiv.org/abs/2307.03172",
+      "finding": "The authors evaluate multi-document question answering and key-value retrieval and report sensitivity to relevant-information position."
+    },
+    {
+      "key": "packer2023",
+      "title": "MemGPT: Towards LLMs as Operating Systems",
+      "authors": "Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion Stoica, and Joseph E. Gonzalez",
+      "year": 2023,
+      "url": "https://arxiv.org/abs/2310.08560",
+      "finding": "The authors introduce virtual context management inspired by hierarchical memory and evaluate document analysis and multi-session chat."
+    },
+    {
+      "key": "yao2022",
+      "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+      "authors": "Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao",
+      "year": 2022,
+      "url": "https://arxiv.org/abs/2210.03629",
+      "finding": "The authors interleave reasoning and actions on language and interactive tasks. This pilot uses the framework ReActAgent class but disables tools and does not evaluate action planning."
+    }
+  ],
+  "execution": "openJiuwen ReActAgent with a new opt-in rail located in JiuwenSwarm source, not the GUI app or full Swarm assembler. No tools. History selection is applied in before_invoke, actual calls captured in after_model_call.",
+  "chronology": "The agent processes a supplied static history in a single answering call; these are not observed multi-turn interactions.",
+  "sampling": "Synthetic fixed-seed convenience sample, no training or task-specific tuning on model outputs. One run per case. 9 early, 9 middle, 6 late cases.",
+  "publication_status": "Local baseline draft; not submitted to ICLR and not peer reviewed."
+}

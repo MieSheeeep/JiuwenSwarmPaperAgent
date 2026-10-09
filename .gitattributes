@@ -1,0 +1,11 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.csv text eol=lf
+*.patch -text whitespace=-blank-at-eol
+*.pdf binary
+*.png binary
+*.jpg binary

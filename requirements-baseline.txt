@@ -1,0 +1,8 @@
+jiuwenswarm==0.2.4b3.post1
+openjiuwen==0.1.16.post20
+tiktoken==0.14.0
+PyYAML==6.0.3
+python-dotenv==1.2.4
+matplotlib==3.11.2
+pypdf==6.19.0
+pypdfium2==5.14.0

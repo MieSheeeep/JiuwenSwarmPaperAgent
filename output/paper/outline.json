@@ -1,0 +1,8 @@
+{
+  "abstract": "Scope, paired comparison, observed scores, and explicitly synthetic-pilot conclusion.",
+  "introduction": "Question: which history policy preserves configuration state while reducing API tokens?",
+  "related_work": "Position sensitivity, virtual context management, and ReAct; use only the provided verified references.",
+  "methods": "24 deterministic synthetic histories, 60 records, 8 tasks in each family, early/middle/late placements, field-wise overwrites; lexical retrieval, proxy budgets, isolated sessions, paired scoring, all-call token accounting.",
+  "discussion": "Explain recent-window failures by omitted evidence; no accuracy gain from extra summaries; easy identifier matching favors retrieval; no novelty, equivalence, real-world agent, or long-context robustness claim.",
+  "conclusion": "Reusable opt-in JiuwenSwarm rail and verified experiment pipeline, requiring broader evaluation before research claims."
+}

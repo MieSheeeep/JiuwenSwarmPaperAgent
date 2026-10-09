@@ -1,0 +1,314 @@
+{
+  "manifest": {
+    "model": "deepseek-flash",
+    "provider": "OpenAI",
+    "api_base": "https://api.deepseek.com",
+    "seed": 20261008,
+    "tasks": 24,
+    "policies": [
+      "full",
+      "recent",
+      "retrieve",
+      "retrieve_summary"
+    ],
+    "history_budget_proxy_tokens": 512,
+    "summary_budget_proxy_tokens": 256,
+    "tokenizer_proxy": "cl100k_base",
+    "temperature": 0,
+    "top_p": 1,
+    "thinking": "disabled",
+    "answer_max_tokens": 160,
+    "summary_max_tokens": 384,
+    "concurrency": 2,
+    "dataset_sha256": "f50c9905952d979eaba4d8c0999b4dcf92c32c41d9affcf08e3d9e64d5bffb97",
+    "note": "Synthetic pilot; full-history reference is unbounded. No held-out benchmark or novelty claim. Summary overhead is included."
+  },
+  "methods": [
+    {
+      "policy": "full",
+      "tasks": 24,
+      "correct": 24,
+      "exact_accuracy": 1.0,
+      "wilson_95": [
+        0.8620237953250264,
+        1
+      ],
+      "field_accuracy": 1.0,
+      "api_failures": 0,
+      "api_calls": 24,
+      "input_tokens": 74216,
+      "output_tokens": 449,
+      "total_tokens": 74665,
+      "cache_tokens": 2944,
+      "reasoning_tokens": 0,
+      "mean_tokens_per_task": 3111.0416666666665,
+      "mean_seconds_per_task": 0.714322112500137,
+      "mean_history_proxy_tokens": 2917.5833333333335
+    },
+    {
+      "policy": "recent",
+      "tasks": 24,
+      "correct": 6,
+      "exact_accuracy": 0.25,
+      "wilson_95": [
+        0.11999366228595243,
+        0.4489944400515343
+      ],
+      "field_accuracy": 0.25,
+      "api_failures": 0,
+      "api_calls": 24,
+      "input_tokens": 14870,
+      "output_tokens": 413,
+      "total_tokens": 15283,
+      "cache_tokens": 384,
+      "reasoning_tokens": 0,
+      "mean_tokens_per_task": 636.7916666666666,
+      "mean_seconds_per_task": 0.7230030041666851,
+      "mean_history_proxy_tokens": 493.3333333333333
+    },
+    {
+      "policy": "retrieve",
+      "tasks": 24,
+      "correct": 24,
+      "exact_accuracy": 1.0,
+      "wilson_95": [
+        0.8620237953250264,
+        1
+      ],
+      "field_accuracy": 1.0,
+      "api_failures": 0,
+      "api_calls": 24,
+      "input_tokens": 3738,
+      "output_tokens": 474,
+      "total_tokens": 4212,
+      "cache_tokens": 0,
+      "reasoning_tokens": 0,
+      "mean_tokens_per_task": 175.5,
+      "mean_seconds_per_task": 0.6761857916668154,
+      "mean_history_proxy_tokens": 38.75
+    },
+    {
+      "policy": "retrieve_summary",
+      "tasks": 24,
+      "correct": 24,
+      "exact_accuracy": 1.0,
+      "wilson_95": [
+        0.8620237953250264,
+        1
+      ],
+      "field_accuracy": 1.0,
+      "api_failures": 0,
+      "api_calls": 48,
+      "input_tokens": 6820,
+      "output_tokens": 788,
+      "total_tokens": 7608,
+      "cache_tokens": 0,
+      "reasoning_tokens": 0,
+      "mean_tokens_per_task": 317.0,
+      "mean_seconds_per_task": 1.4309869249999185,
+      "mean_history_proxy_tokens": 15.25
+    }
+  ],
+  "groups": [
+    {
+      "policy": "full",
+      "group_key": "family",
+      "group": "lookup",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "full",
+      "group_key": "family",
+      "group": "partial",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "full",
+      "group_key": "family",
+      "group": "revision",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "full",
+      "group_key": "position",
+      "group": "early",
+      "n": 9,
+      "correct": 9
+    },
+    {
+      "policy": "full",
+      "group_key": "position",
+      "group": "late",
+      "n": 6,
+      "correct": 6
+    },
+    {
+      "policy": "full",
+      "group_key": "position",
+      "group": "middle",
+      "n": 9,
+      "correct": 9
+    },
+    {
+      "policy": "recent",
+      "group_key": "family",
+      "group": "lookup",
+      "n": 8,
+      "correct": 2
+    },
+    {
+      "policy": "recent",
+      "group_key": "family",
+      "group": "partial",
+      "n": 8,
+      "correct": 2
+    },
+    {
+      "policy": "recent",
+      "group_key": "family",
+      "group": "revision",
+      "n": 8,
+      "correct": 2
+    },
+    {
+      "policy": "recent",
+      "group_key": "position",
+      "group": "early",
+      "n": 9,
+      "correct": 0
+    },
+    {
+      "policy": "recent",
+      "group_key": "position",
+      "group": "late",
+      "n": 6,
+      "correct": 6
+    },
+    {
+      "policy": "recent",
+      "group_key": "position",
+      "group": "middle",
+      "n": 9,
+      "correct": 0
+    },
+    {
+      "policy": "retrieve",
+      "group_key": "family",
+      "group": "lookup",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "retrieve",
+      "group_key": "family",
+      "group": "partial",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "retrieve",
+      "group_key": "family",
+      "group": "revision",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "retrieve",
+      "group_key": "position",
+      "group": "early",
+      "n": 9,
+      "correct": 9
+    },
+    {
+      "policy": "retrieve",
+      "group_key": "position",
+      "group": "late",
+      "n": 6,
+      "correct": 6
+    },
+    {
+      "policy": "retrieve",
+      "group_key": "position",
+      "group": "middle",
+      "n": 9,
+      "correct": 9
+    },
+    {
+      "policy": "retrieve_summary",
+      "group_key": "family",
+      "group": "lookup",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "retrieve_summary",
+      "group_key": "family",
+      "group": "partial",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "retrieve_summary",
+      "group_key": "family",
+      "group": "revision",
+      "n": 8,
+      "correct": 8
+    },
+    {
+      "policy": "retrieve_summary",
+      "group_key": "position",
+      "group": "early",
+      "n": 9,
+      "correct": 9
+    },
+    {
+      "policy": "retrieve_summary",
+      "group_key": "position",
+      "group": "late",
+      "n": 6,
+      "correct": 6
+    },
+    {
+      "policy": "retrieve_summary",
+      "group_key": "position",
+      "group": "middle",
+      "n": 9,
+      "correct": 9
+    }
+  ],
+  "paired": [
+    {
+      "reference": "full",
+      "candidate": "recent",
+      "reference_only": 18,
+      "candidate_only": 0,
+      "both_correct": 6,
+      "both_wrong": 0,
+      "exact_mcnemar_p_exploratory": 7.62939453125e-06
+    },
+    {
+      "reference": "full",
+      "candidate": "retrieve",
+      "reference_only": 0,
+      "candidate_only": 0,
+      "both_correct": 24,
+      "both_wrong": 0,
+      "exact_mcnemar_p_exploratory": 1.0
+    },
+    {
+      "reference": "full",
+      "candidate": "retrieve_summary",
+      "reference_only": 0,
+      "candidate_only": 0,
+      "both_correct": 24,
+      "both_wrong": 0,
+      "exact_mcnemar_p_exploratory": 1.0
+    }
+  ],
+  "total_api_calls": 120,
+  "total_api_tokens": 101768,
+  "interpretation": "Synthetic convenience sample; Wilson intervals are descriptive. Paired tests are exploratory, not corrected for multiple comparisons. No equivalence or generalization claim."
+}

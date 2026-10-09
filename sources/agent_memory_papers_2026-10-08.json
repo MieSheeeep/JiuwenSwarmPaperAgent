@@ -1,0 +1,68 @@
+{
+  "checked_date": "2026-10-08",
+  "scope": "targeted initial literature screening, not a systematic review",
+  "verification": "primary paper metadata/abstracts and selected author repositories; full texts not yet critically reviewed",
+  "backend": "available web search; skill-specific parallel-cli unavailable",
+  "papers": [
+    {
+      "title": "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory",
+      "year": "2024 preprint / ICLR 2025",
+      "url": "https://arxiv.org/abs/2410.10813",
+      "code": "https://github.com/xiaowu0162/LongMemEval",
+      "role": "primary benchmark and indexing/retrieval design",
+      "note": "500 questions cover information extraction, multi-session reasoning, temporal reasoning, knowledge updates and abstention. Official repository provides cleaned data; pin dataset revision. Oracle input is diagnostic, not an ordinary retrieval score."
+    },
+    {
+      "title": "Evaluating Very Long-Term Conversational Memory of LLM Agents",
+      "year": "ACL 2024",
+      "url": "https://aclanthology.org/2024.acl-long.747/",
+      "code": "https://github.com/snap-research/locomo",
+      "role": "secondary conversational benchmark",
+      "note": "LoCoMo tests long multi-session conversations. Conversation histories are created through a machine-human pipeline; do not describe this as wholly natural real-user data."
+    },
+    {
+      "title": "A-MEM: Agentic Memory for LLM Agents",
+      "year": "2025",
+      "url": "https://arxiv.org/abs/2502.12110",
+      "code": "https://github.com/agiresearch/A-mem",
+      "role": "memory organization comparator",
+      "note": "Creates structured notes with contextual descriptions, keywords and tags, links related memories and updates prior memory representations. Compare against semantic retrieval to isolate value of organization."
+    },
+    {
+      "title": "Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory",
+      "year": "2025",
+      "url": "https://arxiv.org/abs/2504.19413",
+      "role": "fact extraction and consolidation comparator",
+      "note": "Extracts, consolidates and retrieves salient information; discusses a graph-memory variant. Include ingestion and update calls in resource accounting. Published gains are author-reported under their own evaluation protocol."
+    },
+    {
+      "title": "Zep: A Temporal Knowledge Graph Architecture for Agent Memory",
+      "year": "2025",
+      "url": "https://arxiv.org/abs/2501.13956",
+      "role": "temporal-memory comparator",
+      "note": "Uses Graphiti for dynamic temporal knowledge integration. Relevant to conflicting updates and current versus historical facts; a full temporal graph may exceed a short competition implementation window."
+    },
+    {
+      "title": "MemGPT: Towards LLMs as Operating Systems",
+      "year": "2023",
+      "url": "https://arxiv.org/abs/2310.08560",
+      "role": "foundational hierarchical-memory reference",
+      "note": "Already included in the initial paper reference bundle. Read the memory management mechanism; replacing simple selection with a named prior method alone does not establish novelty."
+    },
+    {
+      "title": "EvalMem: An Operation-Level Diagnostic Framework for Long-Term Memory Systems",
+      "year": "2026; arXiv reports accepted EMNLP Findings",
+      "url": "https://arxiv.org/abs/2609.22231",
+      "role": "failure attribution",
+      "note": "Separates checks of fact storage, usable evidence retrieval and answer generation from oracle evidence. Source evidence is for diagnosis only; never expose gold evidence to an ordinary tested retriever."
+    },
+    {
+      "title": "LongMemEval-V2: Evaluating Long-Term Agent Memory Toward Experienced Colleagues",
+      "year": "2026 work-in-progress preprint",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "project": "https://xiaowu0162.github.io/longmemeval-v2/",
+      "role": "future environment-experience benchmark",
+      "note": "451 curated questions on web-agent state, workflows and failure modes. Very large trajectory histories; first inspect a small development subset and resource requirements."
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+[submodule "upstream"]
+	path = upstream
+	url = https://atomgit.com/openJiuwen/jiuwenswarm.git

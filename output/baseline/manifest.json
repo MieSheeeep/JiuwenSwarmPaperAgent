@@ -1,0 +1,24 @@
+{
+  "model": "deepseek-flash",
+  "provider": "OpenAI",
+  "api_base": "https://api.deepseek.com",
+  "seed": 20261008,
+  "tasks": 24,
+  "policies": [
+    "full",
+    "recent",
+    "retrieve",
+    "retrieve_summary"
+  ],
+  "history_budget_proxy_tokens": 512,
+  "summary_budget_proxy_tokens": 256,
+  "tokenizer_proxy": "cl100k_base",
+  "temperature": 0,
+  "top_p": 1,
+  "thinking": "disabled",
+  "answer_max_tokens": 160,
+  "summary_max_tokens": 384,
+  "concurrency": 2,
+  "dataset_sha256": "f50c9905952d979eaba4d8c0999b4dcf92c32c41d9affcf08e3d9e64d5bffb97",
+  "note": "Synthetic pilot; full-history reference is unbounded. No held-out benchmark or novelty claim. Summary overhead is included."
+}

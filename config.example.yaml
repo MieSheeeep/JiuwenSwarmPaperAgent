@@ -1,0 +1,10 @@
+models:
+  defaults:
+    - is_default: true
+      model_client_config:
+        client_provider: OpenAI
+        model_name: deepseek-flash
+        api_base: https://api.deepseek.com
+        api_key: ${API_KEY}
+      model_config:
+        model_name: deepseek-flash
