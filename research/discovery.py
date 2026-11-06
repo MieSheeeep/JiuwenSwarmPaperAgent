@@ -7,6 +7,7 @@ from pathlib import Path
 from research.artifacts import digest, file_digest, save_json, atomic_write, create_artifact
 from research.literature import ArxivClient
 from research.model_gateway import ModelGateway
+from research.experiment_protocol import ADAPTIVE_QA_PROTOCOL, validate_experiment_plan
 
 SKILLS = Path(__file__).with_name('skills')
 STAGES = ('literature_review', 'question_formulation', 'experiment_design')
@@ -25,6 +26,15 @@ PLAN_EXAMPLE = {'candidate_id': 'g1', 'source_ids': ['p1', 'p2'], 'adapter': 'im
     'pilot': 'First validate a small development-only subset',
     'limitations': ['Bounded source coverage; novelty not established'],
     'required_implementation': ['Implement new experiment adapter']}
+ADAPTIVE_PLAN_EXAMPLE = {'candidate_id': 'g1', 'source_ids': ['p1', 'p2'], 'adapter': 'adaptive-qa-v1',
+    'protocol': ADAPTIVE_QA_PROTOCOL, 'data_split': {'train': 0, 'test': 12, 'seed': 20261106},
+    'baselines': ['single_pass', 'fixed_two_passages'], 'methods': list(ADAPTIVE_QA_PROTOCOL['methods']),
+    'metrics': ['exact_accuracy', 'evidence_recall', 'context_passages', 'provider_tokens'],
+    'ablations': ['remove adaptive stopping'], 'falsification': 'No paired gain at lower context cost',
+    'cost_controls': {'max_total_tokens': 20000, 'max_calls': 36},
+    'analysis': 'Paired task-level comparison including failures and uncertainty',
+    'pilot': 'Run one deterministic pilot before the frozen test set',
+    'limitations': ['Synthetic benchmark; novelty remains unverified']}
 
 
 def _text(value):
@@ -70,8 +80,10 @@ def validate_stage(stage, value, papers, selected_id=None, closest_papers=()):
     elif stage == 'experiment_design':
         refs(value.get('source_ids'))
         if value.get('candidate_id') != selected_id: raise ValueError('Plan must test the selected candidate')
-        for key in ('data_split', 'falsification', 'analysis', 'pilot'):
+        for key in ('falsification', 'analysis', 'pilot'):
             if not _text(value.get(key)): raise ValueError('Missing experiment field: ' + key)
+        if not (_text(value.get('data_split')) or isinstance(value.get('data_split'), dict)):
+            raise ValueError('Missing experiment field: data_split')
         for key in ('baselines', 'metrics', 'ablations', 'limitations'):
             if not isinstance(value.get(key), list) or not value[key] or not all(_text(i) for i in value[key]):
                 raise ValueError('Missing experiment field: ' + key)
@@ -82,6 +94,8 @@ def validate_stage(stage, value, papers, selected_id=None, closest_papers=()):
             validate_handoff(value)
             if cost['max_total_tokens'] <= 20000 or cost['max_calls'] != 700:
                 raise ValueError('Registered memory runner requires >20000 tokens and max_calls=700')
+        elif value.get('adapter') == 'adaptive-qa-v1':
+            validate_experiment_plan(value)
         elif value.get('adapter') != 'implementation-required' or not value.get('required_implementation'):
             raise ValueError('Unsupported adapter must identify required implementation')
     else: raise ValueError('Unknown research stage')
@@ -89,8 +103,14 @@ def validate_stage(stage, value, papers, selected_id=None, closest_papers=()):
 
 
 def validate_handoff(plan):
-    if plan.get('adapter') != 'structured-memory-v1' or plan.get('protocol') != MEMORY_PROTOCOL:
-        raise ValueError('Plan needs a new experiment implementation; fixed memory runner cannot execute it')
+    if plan.get('adapter') == 'structured-memory-v1':
+        if plan.get('protocol') != MEMORY_PROTOCOL:
+            raise ValueError('Registered memory protocol changed')
+        return
+    if plan.get('adapter') == 'adaptive-qa-v1':
+        validate_experiment_plan(plan)
+        return
+    raise ValueError('Plan needs a registered experiment implementation before execution')
 
 
 def load_bundle(directory):
@@ -117,10 +137,12 @@ def research_artifacts(directory):
         'source_ids': question['source_ids'], 'falsification': question['falsification'],
         'feasibility': plan['pilot'], 'novelty_status': 'unverified',
         'discovery_manifest_sha256': file_digest(Path(directory) / 'manifest.json')})
+    methods = plan['protocol'].get('policies', plan['protocol'].get('methods', []))
+    command = 'registered:' + plan['adapter']
     experiment = create_artifact('ExperimentPlan', {'dataset_version': plan['protocol']['dataset'],
-        'split': plan['data_split'], 'methods': plan['protocol']['policies'],
+        'split': plan['data_split'], 'methods': methods,
         'budget_policy': plan['cost_controls'], 'metrics': plan['metrics'],
-        'acceptance': plan['falsification'], 'commands': ['registered:structured-memory-v1'],
+        'acceptance': plan['falsification'], 'commands': [command],
         'protocol': plan['protocol'], 'analysis': plan['analysis'], 'ablations': plan['ablations']}, [brief['artifact_id']])
     return brief, experiment
 
@@ -204,8 +226,11 @@ async def discover(directory, *, topic, query, max_total_tokens, config, count_t
                 '\nReturn JSON only, no markdown. Write descriptions in Chinese; retain exact English quotes and schema keys.'},
                 {'role': 'user', 'content': json.dumps({'topic': topic, 'sources': papers,
                     'previous_stages': {k: v for k, v in bundle.items() if k != 'sources'},
-                    'schema_example': example, 'registered_adapter': MEMORY_PROTOCOL,
-                    'adapter_cost_requirement': {'max_total_tokens': '>20000', 'max_calls': 700}}, ensure_ascii=False)}]
+                    'schema_example': example, 'schema_examples': [PLAN_EXAMPLE, ADAPTIVE_PLAN_EXAMPLE],
+                    'registered_adapters': {
+                        'structured-memory-v1': MEMORY_PROTOCOL, 'adaptive-qa-v1': ADAPTIVE_QA_PROTOCOL},
+                    'adapter_cost_requirement': {'structured-memory-v1': {'max_total_tokens': '>20000', 'max_calls': 700},
+                                                 'adaptive-qa-v1': {'max_calls': '>=36'}}}, ensure_ascii=False)}]
             response = await gateway.call(messages, 'discovery/' + stage, max_tokens=3500)
             value = json.loads(response['output'])
             validate_stage(stage, value, papers, bundle.get('question_formulation', {}).get('selected_id'),

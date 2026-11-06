@@ -99,5 +99,20 @@ class DiscoveryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_stage('experiment_design', value, corpus(), selected_id='g1')
 
+    def test_registered_adaptive_qa_plan_is_executable(self):
+        from research.experiment_protocol import ADAPTIVE_QA_PROTOCOL
+        value = {
+            'candidate_id': 'g1', 'source_ids': ['p1', 'p2'], 'adapter': 'adaptive-qa-v1',
+            'protocol': dict(ADAPTIVE_QA_PROTOCOL), 'data_split': {'train': 0, 'test': 12, 'seed': 20261106},
+            'baselines': ['single_pass', 'fixed_two_passages'],
+            'methods': list(ADAPTIVE_QA_PROTOCOL['methods']), 'metrics': ['exact_accuracy'],
+            'ablations': ['remove adaptive stopping'], 'falsification': 'No paired gain',
+            'cost_controls': {'max_total_tokens': 20000, 'max_calls': 36},
+            'analysis': 'paired task-level comparison', 'pilot': 'one deterministic pilot',
+            'limitations': ['Synthetic benchmark'],
+        }
+        validate_stage('experiment_design', value, corpus(), selected_id='g1')
+        validate_handoff(value)
+
 
 if __name__ == '__main__': unittest.main()
