@@ -2,6 +2,8 @@
 
 统一科研框架入口为 research.workflow，包含阶段调度、工具注册、实验插件接口、审查退回、暂停与恢复。整体结构和使用说明见 [科研框架](docs/research_framework.md)。初始化与状态查看均离线；真实模型和实验只在显式安装执行器并触发后运行。
 
+ConnectedProfile 已接入文献、问题、方案、插件检查、dev/test 执行、结果复算、写作、审查和 ICLR 导出。工作台新增“科研流程”页；具体配置见 config.workflow.example.json 与 docs/qa_dataset.example.json。启动真实运行必须显式使用 run --enable-model，本轮实现仅做离线集成验证。
+
 新增“文献 → 问题 → 实验方案 → 注册实验 → 论文草稿”流程：仓库 Skill 指导真实文献阅读、问题提出及方案设计；注册适配器负责冻结数据、执行可审计的小实验并把结果交给写作阶段。结果可在工作台“文献与选题”查看。运行与边界见 [流程说明](docs/literature_to_plan.md) 和 [通用科研闭环记录](docs/generic_research_run_20261106.md)。当前新增适配器是与旧记忆课题不同的 synthetic 多跳问答案例，不代表任意学科自主科研。
 
 当前代码也包括记忆优化、公开基准适配、语义/混合检索、可追溯写作和中文工作台；下文“初版结果”仅保留历史 baseline。最新全面实验记录见 [全面升级交付](docs/research_upgrade_release_20261106.md)。原始运行账本、私有外部评审和本地生成目录默认不上传，公开代码可重新运行；框架补丁已涵盖现有全部八个扩展文件。

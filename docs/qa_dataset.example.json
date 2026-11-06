@@ -1,0 +1,22 @@
+[
+  {
+    "id": "dev-example",
+    "split": "dev",
+    "question": "Which city hosts the example lab?",
+    "answer": "Paris",
+    "passages": [
+      {"id": "p0", "title": "Example lab", "text": "The example lab is in Paris."},
+      {"id": "p1", "title": "Other lab", "text": "Another lab is in London."}
+    ]
+  },
+  {
+    "id": "test-example",
+    "split": "test",
+    "question": "Which city hosts the second example lab?",
+    "answer": "Rome",
+    "passages": [
+      {"id": "p0", "title": "Second example lab", "text": "The second example lab is in Rome."},
+      {"id": "p1", "title": "Other lab", "text": "Another lab is in Madrid."}
+    ]
+  }
+]

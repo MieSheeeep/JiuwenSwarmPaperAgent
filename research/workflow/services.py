@@ -77,6 +77,12 @@ class LocalServices:
             heading,text=section['heading'],section['text']
             if heading.lower()=='abstract':lines += [r'\begin{abstract}',tex_escape(text),r'\end{abstract}']
             else:lines += [r'\section{'+tex_escape(heading)+'}',tex_escape(text)]
+            if heading.lower()=='results' and manuscript.get('measured_results'):
+                lines += [r'\begin{table}[ht]\centering\small\begin{tabular}{lrrrr}\toprule',
+                          r'Method & EM & F1 & Documents & Tokens\\ \midrule']
+                for name,row in manuscript['measured_results'].items():
+                    lines.append(tex_escape(name)+f" & {row['exact']:.3f} & {row['f1']:.3f} & {row['mean_documents']:.2f} & {row['provider_tokens']}"+r'\\')
+                lines += [r'\bottomrule\end{tabular}\caption{Metrics recomputed from saved answers.}\end{table}']
         refs=manuscript.get('references',[])
         if refs:
             lines += [r'\section*{References}']

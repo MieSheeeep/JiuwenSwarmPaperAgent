@@ -63,13 +63,19 @@ class JiuwenBackend:
         from research.agent_invocation import invoke_agent
         key=str(context.directory)
         if key not in self.gateways:
+            from .engine import Workflow
+            limits=Workflow(context.directory).state['limits']
             self.gateways[key]=ModelGateway(read_model_config(self.config_dir),context.directory/'model_ledger',
-                max_total_tokens=context.remaining['tokens'],max_calls=context.remaining['calls'],
+                max_total_tokens=limits['tokens'],max_calls=limits['calls'],
                 wall_seconds=3600,count_tokens=token_count)
         gateway=self.gateways[key]
+        before=gateway.totals()
         async def invoke(on_response):
             return await invoke_agent(gateway.config,messages,3500,on_response)
-        return await gateway.call(messages,context.stage+'/'+str(step),max_tokens=3500,invoke=invoke)
+        row=await gateway.call(messages,context.stage+'/'+str(step),max_tokens=3500,invoke=invoke)
+        after=gateway.totals()
+        return {**row,'accounted_usage':{'calls':after['api_calls']-before['api_calls'],
+            'tokens':after['known_api_tokens']-before['known_api_tokens']}}
 
 
 def agent_registry(model, *, tools=None, stage_tools=None):

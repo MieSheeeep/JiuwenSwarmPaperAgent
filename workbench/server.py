@@ -82,6 +82,9 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/discovery':
                 from .discovery import payload
                 return self._json(200,payload(self.repository))
+            if path == '/api/workflows':
+                from .workflow import payload
+                return self._json(200,payload(self.repository))
             if path == '/api/upgrade':
                 from .upgrade import payload
                 return self._json(200,payload(self.repository))

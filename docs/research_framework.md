@@ -101,8 +101,28 @@ registry = standard_registry(project.directory, model=JiuwenBackend(),
 
 每个阶段也可使用确定性 Python handler，或人工导入结果，不强迫所有步骤都使用模型。实验插件可以替换成记忆课题、问答课题或其他研究方向。
 
+## 已接通的执行配置
+
+ConnectedProfile 已绑定全部十一阶段。选题由用户提供；文献阶段真实调用 arXiv 服务和阅读器；问题阶段调用模型；设计阶段按注册插件冻结数据和方法；实现阶段检查插件接口与数据；试运行和正式实验分别使用 dev/test；分析阶段从保存的回答重新评分；写作分为提纲和正文；审查可以退回；导出阶段编译 ICLR PDF，并插入代码计算的结果表。
+
+本地 JSON 问答插件 json-qa-v1 接收独立 dev/test 任务，比较 fixed_top2、fixed_all、adaptive_top2_to4。选择器只接收问题和文档，答案标注只在评分阶段读取。数据格式见 qa_dataset.example.json，配置见仓库根目录 config.workflow.example.json。这些文件只是格式示例，不能作为科研结果。
+
+初始化项目时指定 constraints 文件：
+
+~~~powershell
+.venv\Scripts\python.exe -m research.workflow --project output/framework_myproject init --topic "你的研究方向" --constraints config.workflow.example.json
+~~~
+
+运行命令已实现，必须显式传 --enable-model 才会调用已配置模型：
+
+~~~powershell
+.venv\Scripts\python.exe -m research.workflow --project output/framework_myproject run --enable-model --until review
+~~~
+
+本次实现没有执行该命令。工作台新增“科研流程”页面和只读 /api/workflows 接口，展示各阶段、预算、修订和中断状态；网页刷新不会启动模型。
+
 ## 交付与边界
 
 已实现可运行调度器、各阶段接口、模型工具循环、标准工具服务、离线 CLI 和暂停恢复。离线 fixture 验证了整条控制流、审查退回、产物篡改拦截和中断核账；fixture 不计作真实科研结果。
 
-后续需要为具体方向安装实验插件、补绘图和发布检查工具，并绑定工作台操作页，再做真实集成验收。当前按用户要求仅搭建整体框架，未启动新模型调用或实验。
+框架已有可调用的阶段服务和一个真实问答实验插件，不再只是空执行器。对任意新学科或全新算法仍需要新的插件实现；当前不提供任意模型代码的自动部署。论文编译器会输出 visual_inspection=required，不能把编译成功当成视觉审阅完成；外部评审 token 需要与最终 PDF 对应。本次只通过注入离线模型、文献服务和编译替身检查整条真实 handler 链，未启动模型或真实实验。

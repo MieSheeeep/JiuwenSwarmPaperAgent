@@ -1,0 +1,4 @@
+{
+  "literature_query": "all:retrieval AND all:question",
+  "dataset_path": "E:/replace-with-your-local-data/qa_tasks.json"
+}

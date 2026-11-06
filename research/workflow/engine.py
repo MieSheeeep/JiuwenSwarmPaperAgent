@@ -75,6 +75,12 @@ class Workflow:
         return workflow
 
     def _save(self, event, **details):
+        if self.state_path.exists() and event not in ('resumed','pause_requested'):
+            disk=json.loads(self.state_path.read_text(encoding='utf-8'))
+            if disk.get('pause_requested'):
+                self.state['pause_requested']=True
+                if self.state['status'] not in ('completed','budget_exceeded'):
+                    self.state['status']='paused'
         self.state['events'].append({'time': now(), 'event': event, **details})
         save_json(self.state_path, self.state)
 
@@ -144,6 +150,8 @@ class Workflow:
                     raise ValueError('Export file hash mismatch')
 
     def accept(self, stage, result):
+        if (self.directory/'active.json').exists() and self.state['status']!='running':
+            raise ValueError('Interrupted stage must be reconciled before importing artifacts')
         if stage != self.next_stage():
             raise ValueError('Stage is out of sequence; expected ' + str(self.next_stage()))
         self.verify()
@@ -201,6 +209,8 @@ class Workflow:
         self.verify()
         if self.state['status'] == 'budget_exceeded':
             raise ValueError('Budget reconciliation required')
+        if self.state['status']=='revision_limit':
+            raise ValueError('Explicit invalidation required after revision limit')
         self.state['pause_requested'] = False; self.state['status'] = 'ready'
         self._save('resumed')
 
@@ -213,6 +223,14 @@ class Workflow:
             if disk.get('pause_requested') or self.state['status'] in ('needs_input', 'revision_limit', 'budget_exceeded'):
                 self.state = disk; break
             stage = self.next_stage()
+            if stage=='experiment' and not self.artifact('pilot')['payload']['passed']:
+                self.state['status']='needs_input'
+                self._save('pilot_gate_blocked',stage=stage)
+                break
+            if stage=='export' and self.artifact('review')['payload']['decision']!='accept':
+                self.state['status']='needs_input'
+                self._save('review_gate_blocked',stage=stage)
+                break
             if stage not in registry.handlers:
                 self.state['status'] = 'needs_input'
                 self._save('missing_executor', stage=stage); break
@@ -235,7 +253,8 @@ class Workflow:
                 self.accept(stage,result)
                 (self.directory/'active.json').unlink()
             except Exception as error:
-                self.state['status'] = 'needs_input'
+                if self.state['status'] != 'budget_exceeded':
+                    self.state['status'] = 'needs_input'
                 self._save('stage_failed',stage=stage,error_type=type(error).__name__,reason=str(error))
                 # Keep active marker: an exception does not prove no billable call occurred.
                 break
