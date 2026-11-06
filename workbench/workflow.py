@@ -16,7 +16,14 @@ def payload(repository):
                 row=workflow.state['stages'][stage]
                 artifacts.append({'stage':stage,'status':row['status'],'attempts':row['attempts'],
                                   'sha256':row.get('sha256')})
+            implementation=(workflow.artifact('implementation')['payload']
+                            if workflow.state['stages']['implementation']['status']=='completed' else {})
+            release=(workflow.artifact('export')['payload'].get('delivery',{})
+                     if workflow.state['stages']['export']['status']=='completed' else {})
             result.append({'directory':directory.name,'topic':topic,**status,'artifacts':artifacts,
+                           'generated_method':bool(implementation.get('source_path')),
+                           'methods':implementation.get('capabilities',[]),
+                           'release':{k:release.get(k) for k in ('file_count','external_review_ready','visual_review_ready')},
                            'feedback_count':len(workflow.state['feedback']),
                            'last_event':workflow.state['events'][-1]['event'] if workflow.state['events'] else None})
         except (ValueError,KeyError,TypeError,OSError):

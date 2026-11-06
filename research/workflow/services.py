@@ -63,7 +63,10 @@ class LocalServices:
                 'literature':['arxiv.search','arxiv.read'],'documents':['workspace.read','workspace.write','paper.compile']}
 
     def compile_paper(self, manuscript):
-        from research.memory_paper import tex_escape
+        def tex_escape(text):
+            replacements={'\\':r'\textbackslash{}','&':r'\&','%':r'\%','$':r'\$','#':r'\#',
+                          '_':r'\_','{':r'\{','}':r'\}','~':r'\textasciitilde{}','^':r'\textasciicircum{}'}
+            return ''.join(replacements.get(c,c) for c in str(text)).replace('—','--').replace('’',"'")
         if not isinstance(manuscript,dict) or not manuscript.get('sections'):
             raise ValueError('Complete manuscript required')
         paper=self.path('paper');paper.mkdir(parents=True,exist_ok=True)
@@ -73,21 +76,38 @@ class LocalServices:
                r'\usepackage{hyperref,booktabs,graphicx}',r'\iclrfinalcopy',
                r'\title{'+tex_escape(manuscript['title'])+'}',r'\author{Research Agent}',
                r'\begin{document}',r'\maketitle']
+        refs=manuscript.get('references',[])
+        def prose(text):
+            result=tex_escape(text)
+            for index,ref in enumerate(refs):
+                if isinstance(ref,dict) and ref.get('id'):
+                    result=result.replace(tex_escape('['+ref['id']+']'),r'\citep{ref'+str(index)+'}')
+            return result
         for section in manuscript['sections']:
             heading,text=section['heading'],section['text']
-            if heading.lower()=='abstract':lines += [r'\begin{abstract}',tex_escape(text),r'\end{abstract}']
-            else:lines += [r'\section{'+tex_escape(heading)+'}',tex_escape(text)]
+            if heading.lower()=='abstract':lines += [r'\begin{abstract}',prose(text),r'\end{abstract}']
+            else:lines += [r'\section{'+tex_escape(heading)+'}',prose(text)]
             if heading.lower()=='results' and manuscript.get('measured_results'):
                 lines += [r'\begin{table}[ht]\centering\small\begin{tabular}{lrrrr}\toprule',
                           r'Method & EM & F1 & Documents & Tokens\\ \midrule']
                 for name,row in manuscript['measured_results'].items():
                     lines.append(tex_escape(name)+f" & {row['exact']:.3f} & {row['f1']:.3f} & {row['mean_documents']:.2f} & {row['provider_tokens']}"+r'\\')
                 lines += [r'\bottomrule\end{tabular}\caption{Metrics recomputed from saved answers.}\end{table}']
-        refs=manuscript.get('references',[])
         if refs:
-            lines += [r'\section*{References}']
-            for ref in refs:
-                lines += [tex_escape(json.dumps(ref,ensure_ascii=True) if isinstance(ref,dict) else str(ref))+r'\par']
+            lines += [r'\begin{thebibliography}{99}']
+            for index,ref in enumerate(refs):
+                if isinstance(ref,dict):
+                    authors=ref.get('authors') or ['Source']
+                    if isinstance(authors,str):authors=[authors]
+                    year=str(ref.get('published') or 'n.d.')[:4]
+                    label=tex_escape(authors[0].split()[-1]+(' et al.' if len(authors)>1 else ''))
+                    text=tex_escape(', '.join(authors)+'. '+str(ref.get('title') or ref['id'])+'. '+year+'.')
+                    url=ref.get('url')
+                    if isinstance(url,str) and url.startswith('https://') and not any(c in url for c in '{}\\'):
+                        text+=r' \url{'+url+'}.'
+                else:label,year,text='Source','n.d.',tex_escape(str(ref))
+                lines += [r'\bibitem['+label+'('+year+')]{ref'+str(index)+'}'+text]
+            lines += [r'\end{thebibliography}']
         lines += [r'\end{document}']
         atomic_write(paper/'paper.tex','\n'.join(lines))
         for _ in range(2):

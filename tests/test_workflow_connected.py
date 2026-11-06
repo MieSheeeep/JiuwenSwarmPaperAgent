@@ -36,6 +36,11 @@ class ConnectedTests(unittest.TestCase):
                 elif tag=='literature/compare':value={'comparison':'fixture','limitations':['offline']}
                 elif tag=='question/propose':value={'question':'Does retrieval help?','hypothesis':'Maybe',
                     'source_ids':['s1','s2'],'falsification':'No gain'}
+                elif tag=='design/propose_method':value={'name':'generated_select','budget':2,
+                    'description':'Fixture selection','motivation':'Offline integration'}
+                elif tag.startswith('implementation/code/'):value={
+                    'source':'def select(question, passages, budget):\n    return [p["id"] for p in passages[:budget]]',
+                    'explanation':'Offline fixture method'}
                 elif tag=='writing/outline':value={'outline':['Methods','Results'],'limitations':['offline']}
                 elif tag=='writing/draft':value={'title':'Offline integration fixture',
                     'sections':[{'heading':h,'text':'Offline fixture paragraph. '*65} for h in
@@ -48,7 +53,8 @@ class ConnectedTests(unittest.TestCase):
                 # Explicit fake compiler: this validates wiring, not a PDF or scientific outcome.
                 target=w.directory/'fixture.txt';atomic_write(target,manuscript['title'])
                 return {'files':{'fixture.txt':file_digest(target)},'checks':{'compiled':True},'fixture':True}
-            profile=ConnectedProfile(w.directory,model=model,client=Sources(),compiler=compile_fixture)
+            profile=ConnectedProfile(w.directory,model=model,client=Sources(),compiler=compile_fixture,
+                                     releaser=lambda root,value:{'fixture':True})
             result=await w.run(profile.registry())
             self.assertEqual(result['status'],'completed')
             self.assertEqual(result['usage']['calls'],len(sent))

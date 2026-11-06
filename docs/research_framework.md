@@ -103,9 +103,11 @@ registry = standard_registry(project.directory, model=JiuwenBackend(),
 
 ## 已接通的执行配置
 
-ConnectedProfile 已绑定全部十一阶段。选题由用户提供；文献阶段真实调用 arXiv 服务和阅读器；问题阶段调用模型；设计阶段按注册插件冻结数据和方法；实现阶段检查插件接口与数据；试运行和正式实验分别使用 dev/test；分析阶段从保存的回答重新评分；写作分为提纲和正文；审查可以退回；导出阶段编译 ICLR PDF，并插入代码计算的结果表。
+ConnectedProfile 已绑定全部十一阶段。选题由用户提供；未提供检索词时文献 Agent 会从方向生成 arXiv 查询并阅读来源；问题阶段提出假设；设计阶段准备数据、提出待检验的方法并冻结协议；实现阶段生成方法函数并检查；试运行和正式实验分别使用 dev/test；分析阶段从保存的回答重新评分；写作分为提纲和正文；审查可以退回；导出阶段编译 ICLR PDF、生成逐页预览和完整交付 ZIP。
 
-本地 JSON 问答插件 json-qa-v1 接收独立 dev/test 任务，比较 fixed_top2、fixed_all、adaptive_top2_to4。选择器只接收问题和文档，答案标注只在评分阶段读取。数据格式见 qa_dataset.example.json，配置见仓库根目录 config.workflow.example.json。这些文件只是格式示例，不能作为科研结果。
+JSON 问答插件 json-qa-v1 保留 fixed_top2、fixed_all、adaptive_top2_to4 基线，默认另外提出、生成并验证一个选择策略。DataService 支持本地 JSON 或自动下载 HotpotQA 公开验证子集；dev/test 为本项目重新划分的样本，不代表官方测试集。保存原始响应、来源、许可、seed、划分和哈希。数据格式见 qa_dataset.example.json，配置见仓库根目录 config.workflow.example.json。
+
+生成的方法是一个真实 Python 函数 select(question, passages, budget)，源文件会保存并纳入实验身份与交付包。运行使用有操作次数和输入大小限制的 AST 解释器，不使用 eval/exec。支持排序、词项处理、有限循环、条件和简单算术；禁止 import、文件/网络、私有属性、递归和 while。函数只能返回预算内的已有文档 ID。这支持在文档选择问题中生成新策略，不等于自动实现任意学科的任意算法。
 
 初始化项目时指定 constraints 文件：
 
@@ -125,4 +127,17 @@ ConnectedProfile 已绑定全部十一阶段。选题由用户提供；文献阶
 
 已实现可运行调度器、各阶段接口、模型工具循环、标准工具服务、离线 CLI 和暂停恢复。离线 fixture 验证了整条控制流、审查退回、产物篡改拦截和中断核账；fixture 不计作真实科研结果。
 
-框架已有可调用的阶段服务和一个真实问答实验插件，不再只是空执行器。对任意新学科或全新算法仍需要新的插件实现；当前不提供任意模型代码的自动部署。论文编译器会输出 visual_inspection=required，不能把编译成功当成视觉审阅完成；外部评审 token 需要与最终 PDF 对应。本次只通过注入离线模型、文献服务和编译替身检查整条真实 handler 链，未启动模型或真实实验。
+框架已包含阶段服务、自动数据准备、受限方法代码生成、问答执行、论文与审查、预览、交付包和评审回执导入。对任意新学科或超出解释器能力的算法仍需要新插件。自动页面渲染检查不代表视觉质量已通过；人工审阅和外部评审仍是外部结果。回执导入只做本地 PDF 身份绑定，不冒充服务端认证。本轮未启动模型或真实科研实验。
+
+## 论文检查、外部评审与重新打包
+
+导出会生成项目内 delivery/版本ID/团队名.zip，内含 paper、code、docs、资源报告、实验数据与结果、生成方法源码、JiuwenSwarm patch 和来源记录。Token 未提供时不生成占位 Token，并明确 competition_ready=false。每次打包创建新版本，不覆盖已绑定评审的旧 PDF/ZIP。
+
+~~~powershell
+.venv\Scripts\python.exe -m research.workflow --project output/framework_myproject inspect-paper --pdf output/framework_myproject/workspace/paper/paper.pdf
+.venv\Scripts\python.exe -m research.workflow --project output/framework_myproject approve-paper --pdf output/framework_myproject/workspace/paper/paper.pdf --note "逐页审阅说明"
+.venv\Scripts\python.exe -m research.workflow --project output/framework_myproject attach-review --pdf output/framework_myproject/workspace/paper/paper.pdf --token-file private-token.txt --receipt external-receipt.json
+.venv\Scripts\python.exe -m research.workflow --project output/framework_myproject release
+~~~
+
+external-receipt.json 必须包含 paper_sha256，且与该 PDF 完全一致。该接口不自动提交论文或获取结果；只有实际评审服务返回的 Token 才能用于官方评测。手工审阅和真实外部评审结果不能用离线替身替代。

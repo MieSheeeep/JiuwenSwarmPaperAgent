@@ -6,6 +6,8 @@ type Project = {
   directory: string; topic: string; status: string; next_stage?: string | null;
   usage?: { calls: number; tokens: number }; limits?: { calls: number; tokens: number };
   stages: Record<string, string>; revisions?: number; interrupted?: boolean; last_event?: string;
+  generated_method?: boolean; methods?: string[];
+  release?: { file_count?: number; external_review_ready?: boolean; visual_review_ready?: boolean };
 };
 const labels: Record<string, string> = {
   topic: '方向与约束', literature: '文献检索与阅读', question: '问题与假设',
@@ -43,6 +45,8 @@ export default function WorkflowPage({ refresh = 0 }: { refresh?: number }) {
       <p><Badge tone={row.status === 'completed' ? '' : 'neutral'}>{states[row.status] || row.status}</Badge>
         {' '}下一步：{row.next_stage ? labels[row.next_stage] || row.next_stage : row.status === 'completed' ? '流程已结束' : '需要核对'}</p>
       <p>调用 {row.usage?.calls ?? 0} / {row.limits?.calls ?? '—'} 次 · Token {row.usage?.tokens ?? 0} / {row.limits?.tokens ?? '—'} · 修订 {row.revisions ?? 0} 轮</p>
+      {!!row.methods?.length && <p>方法：{row.methods.join('、')} · {row.generated_method ? '包含生成方法代码' : '已有实验方法'}</p>}
+      {!!row.release?.file_count && <p>交付包 {row.release.file_count} 个文件 · 视觉审阅：{row.release.visual_review_ready ? '已记录' : '待审阅'} · 外部评审：{row.release.external_review_ready ? '已绑定回执' : '待导入'}</p>}
       {row.interrupted && <p className="notice warning">存在中断阶段；需要核对调用账本后才能续跑。</p>}
       <ol style={{ paddingLeft: 24 }}>{Object.entries(row.stages).map(([stage, status]) =>
         <li key={stage} style={{ marginBottom: 10 }}>{labels[stage] || stage} · {states[status] || status}</li>)}</ol>

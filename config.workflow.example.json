@@ -1,4 +1,7 @@
 {
   "literature_query": "all:retrieval AND all:question",
-  "dataset_path": "E:/replace-with-your-local-data/qa_tasks.json"
+  "dataset_provider": "hotpotqa-distractor",
+  "dataset_rows": 40,
+  "dataset_seed": 20261107,
+  "generate_method": true
 }

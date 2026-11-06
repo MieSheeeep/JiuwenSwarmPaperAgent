@@ -10,9 +10,16 @@ class JsonQAAdapter:
     version = '1'
     capabilities = ['fixed_top2', 'fixed_all', 'adaptive_top2_to4']
 
-    def __init__(self, dataset, ask):
+    def __init__(self, dataset, ask, *, program=None, method_name=None, method_budget=2):
         self.dataset = Path(dataset).resolve()
         self.ask = ask
+        self.program=program
+        self.method_name=method_name
+        self.method_budget=method_budget
+        self.capabilities=list(type(self).capabilities)
+        if program:
+            if not method_name or method_name in self.capabilities:raise ValueError('Unique generated method name required')
+            self.capabilities.append(method_name)
 
     def _load(self):
         tasks = json.loads(self.dataset.read_text(encoding='utf-8'))
@@ -42,6 +49,7 @@ class JsonQAAdapter:
         directory=Path(directory); directory.mkdir(parents=True,exist_ok=True)
         identity={'adapter':self.name,'version':self.version,'design':digest(design),
                   'dataset':file_digest(self.dataset)}
+        if self.program:identity['method_source']=digest(self.program.source)
         manifest=directory/'protocol.json'
         if manifest.exists() and json.loads(manifest.read_text(encoding='utf-8')) != identity:
             raise ValueError('Experiment directory belongs to another protocol')
@@ -67,6 +75,9 @@ class JsonQAAdapter:
             ranked=rank(t['question'],docs)
             for method in design['methods']:
                 chosen=ranked if method=='fixed_all' else ranked[:2]
+                if self.program and method==self.method_name:
+                    selected=self.program.select(t['question'],docs,self.method_budget)
+                    chosen=[next(p for p in docs if p['id']==ident) for ident in selected]
                 calls=[];valid=True;tokens=0
                 for step in range(2 if method=='adaptive_top2_to4' else 1):
                     response=await self.ask([
