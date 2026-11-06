@@ -85,6 +85,10 @@ class GenericResearchTests(unittest.TestCase):
                 text = (root / 'paper' / 'paper.md').read_text(encoding='utf-8')
                 self.assertIn('single_pass', text)
                 self.assertIn('0.00', text)
+                self.assertIn('Related work', text)
+                self.assertIn('Experimental setup', text)
+                self.assertIn('Error analysis', text)
+                self.assertIn('Appendix: Reproducibility', text)
                 self.assertEqual(paper['status'], 'written')
 
         asyncio.run(run())
