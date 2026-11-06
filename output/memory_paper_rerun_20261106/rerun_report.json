@@ -1,0 +1,80 @@
+{
+  "status": "succeeded",
+  "experiment_conditions": 324,
+  "paper_pages": 5,
+  "paper_sha256": "f5493519362b6ca00d307cc67bddb8cab5133fb551ee2c76df2124fa18f0508c",
+  "discovery": {
+    "api_calls": 3,
+    "known_api_tokens": 34773,
+    "unknown_spend_ids": [],
+    "summed_call_seconds": 32.78199999999924
+  },
+  "experiment_and_writing": {
+    "api_calls": 368,
+    "known_api_tokens": 235950,
+    "unknown_spend_ids": [],
+    "summed_call_seconds": 381.74500000001717
+  },
+  "total_actual_tokens": 270723,
+  "total_calls": 371,
+  "primary_test_results": [
+    {
+      "policy": "bm25",
+      "tasks": 24,
+      "exact_correct": 6,
+      "exact_accuracy": 0.25,
+      "actual_total_tokens": 12180
+    },
+    {
+      "policy": "full",
+      "tasks": 24,
+      "exact_correct": 18,
+      "exact_accuracy": 0.75,
+      "actual_total_tokens": 40860
+    },
+    {
+      "policy": "lexical",
+      "tasks": 24,
+      "exact_correct": 18,
+      "exact_accuracy": 0.75,
+      "actual_total_tokens": 12240
+    },
+    {
+      "policy": "lexical_summary",
+      "tasks": 24,
+      "exact_correct": 13,
+      "exact_accuracy": 0.5416666666666666,
+      "actual_total_tokens": 26402
+    },
+    {
+      "policy": "no_conflict",
+      "tasks": 24,
+      "exact_correct": 20,
+      "exact_accuracy": 0.8333333333333334,
+      "actual_total_tokens": 9440
+    },
+    {
+      "policy": "no_time",
+      "tasks": 24,
+      "exact_correct": 8,
+      "exact_accuracy": 0.3333333333333333,
+      "actual_total_tokens": 9386
+    },
+    {
+      "policy": "recent",
+      "tasks": 24,
+      "exact_correct": 0,
+      "exact_accuracy": 0.0,
+      "actual_total_tokens": 12195
+    },
+    {
+      "policy": "versioned",
+      "tasks": 24,
+      "exact_correct": 20,
+      "exact_accuracy": 0.8333333333333334,
+      "actual_total_tokens": 9592
+    }
+  ],
+  "review_score": null,
+  "scope": "Registered small synthetic memory protocol; complete research-workflow rerun, not the larger external-benchmark study."
+}

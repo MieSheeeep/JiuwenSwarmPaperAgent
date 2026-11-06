@@ -1,0 +1,58 @@
+[
+  {
+    "key": "temporal",
+    "authors": "Christian S. Jensen et al.",
+    "year": 1994,
+    "title": "A Consensus Glossary of Temporal Database Concepts",
+    "url": "https://www2.cs.arizona.edu/~rts/pubs/SIGMODRecordMarch94p52.pdf",
+    "finding": "Valid time and transaction time are established temporal database concepts; this study does not invent bitemporal modeling."
+  },
+  {
+    "key": "memgpt",
+    "authors": "Charles Packer et al.",
+    "year": 2023,
+    "title": "MemGPT: Towards LLMs as Operating Systems",
+    "url": "https://arxiv.org/abs/2310.08560",
+    "finding": "MemGPT studies virtual context management with hierarchical memory. It is related work, not an implemented baseline here."
+  },
+  {
+    "key": "memzero",
+    "authors": "Prateek Chhikara et al.",
+    "year": 2025,
+    "title": "Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory",
+    "url": "https://arxiv.org/abs/2504.19413",
+    "finding": "Mem0 extracts, consolidates and retrieves memories and studies a graph extension on LOCOMO; this structured study does not reproduce it."
+  },
+  {
+    "key": "amem",
+    "authors": "Wujiang Xu et al.",
+    "year": 2025,
+    "title": "A-MEM: Agentic Memory for LLM Agents",
+    "url": "https://arxiv.org/abs/2502.12110",
+    "finding": "A-MEM dynamically links structured notes and evolves memory representations; no comparison to its implementation is claimed."
+  },
+  {
+    "key": "longmemeval",
+    "authors": "Di Wu et al.",
+    "year": 2024,
+    "title": "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory",
+    "url": "https://arxiv.org/abs/2410.10813",
+    "finding": "LongMemEval evaluates long-term interactive memory; it is a needed future external validation, not evaluated here."
+  },
+  {
+    "key": "agentlab",
+    "authors": "Samuel Schmidgall et al.",
+    "year": 2025,
+    "title": "Agent Laboratory: Using LLM Agents as Research Assistants",
+    "url": "https://arxiv.org/abs/2501.04227",
+    "finding": "Agent Laboratory stages literature review, experimentation and report writing. This system borrows workflow design ideas, not source code."
+  },
+  {
+    "key": "airesearcher",
+    "authors": "Jiabin Tang et al.",
+    "year": 2025,
+    "title": "AI-Researcher: Autonomous Scientific Innovation",
+    "url": "https://arxiv.org/abs/2505.18705",
+    "finding": "AI-Researcher orchestrates scientific investigation and manuscript preparation; its research/writing boundary informs our design."
+  }
+]
