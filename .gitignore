@@ -24,3 +24,26 @@ PaperReview-AccessToken.txt
 /output/verification.json
 .DS_Store
 Thumbs.db
+
+# Read-only upstream research references; revisions are pinned in sources.
+/sources/reference_repos/
+
+# Local workbench dependencies and generated assets.
+/frontend/node_modules/
+/frontend/dist/
+/frontend/test-results/
+/frontend/playwright-report/
+/output/workbench-preview/
+/output/workbench/
+/sources/model_cache/
+/sources/external_benchmarks/
+/output/review_upgrade_20261106/external_protocol/tasks.json
+
+# Raw research runs stay local; publish selected reviewed deliverables explicitly.
+/output/discovery_*/
+/output/memory_live_*/
+/output/memory_paper_*/
+/output/research_v2/
+/output/review_upgrade_*/
+/output/claim_revision_*/
+/output/workbench_analysis_*/

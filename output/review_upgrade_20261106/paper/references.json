@@ -1,0 +1,226 @@
+[
+  {
+    "key": "temporal",
+    "authors": "Christian S. Jensen et al.",
+    "year": 1994,
+    "title": "A Consensus Glossary of Temporal Database Concepts",
+    "url": "https://www2.cs.arizona.edu/~rts/pubs/SIGMODRecordMarch94p52.pdf",
+    "finding": "Valid time and transaction time are established temporal database concepts; this study does not invent bitemporal modeling."
+  },
+  {
+    "key": "memgpt",
+    "authors": "Charles Packer et al.",
+    "year": 2023,
+    "title": "MemGPT: Towards LLMs as Operating Systems",
+    "url": "https://arxiv.org/abs/2310.08560",
+    "finding": "MemGPT studies virtual context management with hierarchical memory. It is related work, not an implemented baseline here."
+  },
+  {
+    "key": "memzero",
+    "authors": "Prateek Chhikara et al.",
+    "year": 2025,
+    "title": "Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory",
+    "url": "https://arxiv.org/abs/2504.19413",
+    "finding": "Mem0 extracts, consolidates and retrieves memories and studies a graph extension on LOCOMO; this structured study does not reproduce it."
+  },
+  {
+    "key": "amem",
+    "authors": "Wujiang Xu et al.",
+    "year": 2025,
+    "title": "A-MEM: Agentic Memory for LLM Agents",
+    "url": "https://arxiv.org/abs/2502.12110",
+    "finding": "A-MEM dynamically links structured notes and evolves memory representations; no comparison to its implementation is claimed."
+  },
+  {
+    "key": "longmemeval",
+    "authors": "Di Wu et al.",
+    "year": 2024,
+    "title": "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory",
+    "url": "https://arxiv.org/abs/2410.10813",
+    "finding": "The cleaned original LongMemEval corpus was evaluated here using passage retrieval and lexical/adapted-judge proxies. Official evaluator reproduction and interactive online-memory validation remain future work."
+  },
+  {
+    "key": "agentlab",
+    "authors": "Samuel Schmidgall et al.",
+    "year": 2025,
+    "title": "Agent Laboratory: Using LLM Agents as Research Assistants",
+    "url": "https://arxiv.org/abs/2501.04227",
+    "finding": "Agent Laboratory stages literature review, experimentation and report writing. This system borrows workflow design ideas, not source code."
+  },
+  {
+    "key": "airesearcher",
+    "authors": "Jiabin Tang et al.",
+    "year": 2025,
+    "title": "AI-Researcher: Autonomous Scientific Innovation",
+    "url": "https://arxiv.org/abs/2505.18705",
+    "finding": "AI-Researcher orchestrates scientific investigation and manuscript preparation; its research/writing boundary informs our design."
+  },
+  {
+    "key": "evidentialrag",
+    "title": "EvidentialRAG: Quantifying and Mitigating Information Conflict in Multi-Source Retrieval-Augmented Generation via Evidential Deep Learning",
+    "authors": [
+      "S M Asif Hossain",
+      "Ruksat Khan Shayoni",
+      "M. F. Mridha"
+    ],
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2607.10491",
+    "arxiv": "2607.10491",
+    "verification_status": "verified",
+    "finding": "Primary record identifies ERAG: claim support becomes Dirichlet evidence; conflict-preserving Dempster-Shafer fusion represents unresolved disagreement as uncertainty, which routes answering or abstention.",
+    "relevance": "Direct comparison for uncertainty-aware conflict handling. Preserving conflicting records in a context is not implementation of evidential fusion or calibrated abstention.",
+    "implemented": false
+  },
+  {
+    "key": "arbgraph",
+    "title": "ArbGraph: Conflict-Aware Evidence Arbitration for Reliable Long-Form Retrieval-Augmented Generation",
+    "authors": [
+      "Qingying Niu",
+      "Yuhao Wang",
+      "Ruiyang Ren",
+      "Bohui Fang",
+      "Wayne Xin Zhao"
+    ],
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2604.18362",
+    "arxiv": "2604.18362",
+    "verification_status": "verified",
+    "finding": "Primary abstract describes atomic claims, support/contradiction graph edges, and iterative credibility propagation before generation.",
+    "relevance": "Direct comparison for pre-generation arbitration; atomic record-group packing does not reproduce claim extraction or graph arbitration.",
+    "implemented": false
+  },
+  {
+    "key": "memflow",
+    "title": "MemFlow: Intent-Driven Memory Orchestration for Small Language Model Agents",
+    "authors": [
+      "Jiayi Chen",
+      "Yingcong Li",
+      "Guiling Wang"
+    ],
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2605.03312",
+    "arxiv": "2605.03312",
+    "verification_status": "verified",
+    "finding": "Review's bounded-context orchestration description matches this primary record: intent routing, three retrieval/reasoning tiers, tier-dependent context budgets, and optional validation/retry.",
+    "relevance": "Compare context construction and routing costs on shared tasks. MemFlow is an overloaded name; this identity excludes optical-flow, video-generation and systems-memory projects.",
+    "implemented": false
+  },
+  {
+    "key": "verifiablememory",
+    "title": "Verifiable Memory: Learning Unified Memory Management with Local and Global Verifiers for Large Language Model Agents",
+    "authors": [
+      "Xiaolong Sun",
+      "Qichao Wang",
+      "Hangyu Li",
+      "Liang Chen"
+    ],
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2608.03137",
+    "arxiv": "2608.03137",
+    "verification_status": "verified",
+    "finding": "VerMem learns a unified memory-operation policy with supervised initialization and reinforcement learning; local transition and global coherence verifiers supply training signals. Verifiers are used only during training.",
+    "relevance": "Comparison concerns learned memory management and verification. A conflict-aware answer prompt is not the trained VerMem policy or its verifiers.",
+    "implemented": false
+  },
+  {
+    "key": "graphmemory",
+    "title": "Decoupling Memory from Context: Structured Memory for Token-Efficient Test-Time Continual Learning",
+    "authors": [
+      "Yehya Farhat",
+      "Michael Desmond",
+      "Anastasios Kyrillidis"
+    ],
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2610.02687",
+    "arxiv": "2610.02687",
+    "verification_status": "verified",
+    "finding": "This paper explicitly names its system GraphMemory: a graph of reusable strategies retrieved as query-relevant subgraphs under bounded retrieval. Primary record revised 6 October 2026.",
+    "relevance": "Review's graph-structured bounded-context description matches this system. GraphMemory is not the paper title and should not be silently substituted with a graph-memory survey or G-Memory.",
+    "implemented": false
+  },
+  {
+    "key": "ramdocs",
+    "title": "Retrieval-Augmented Generation with Conflicting Evidence",
+    "authors": [
+      "Han Wang",
+      "Archiki Prasad",
+      "Elias Stengel-Eskin",
+      "Mohit Bansal"
+    ],
+    "year": 2025,
+    "url": "https://arxiv.org/abs/2504.13079",
+    "arxiv": "2504.13079",
+    "verification_status": "verified",
+    "finding": "RAMDocs (Retrieval with Ambiguity and Misinformation in Documents) is a dataset introduced in this paper, jointly covering ambiguity, misinformation and noise.",
+    "relevance": "External conflict benchmark candidate. It is not a distinct paper, not evidence of a completed local benchmark, and not a source of assumed bitemporal annotations.",
+    "implemented": false
+  },
+  {
+    "key": "ehrrag",
+    "title": "EHR-RAG: Bridging Long-Horizon Structured Electronic Health Records and Large Language Models via Enhanced Retrieval-Augmented Generation",
+    "authors": [
+      "Lang Cao",
+      "Qingyu Chen",
+      "Yue Guo"
+    ],
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2601.21340",
+    "arxiv": "2601.21340",
+    "verification_status": "verified",
+    "finding": "Primary abstract describes event/time-aware hybrid retrieval, adaptive iterative retrieval, and factual/counterfactual evidence paths for structured longitudinal EHR prediction.",
+    "relevance": "Cross-domain temporal retrieval comparison. This source does not establish clinical validity or dual valid-time/observation-time semantics for the local selector.",
+    "implemented": false
+  },
+  {
+    "key": "minilm",
+    "title": "MiniLM: Deep Self-Attention Distillation for Task-Agnostic Compression of Pre-Trained Transformers",
+    "authors": [
+      "Wenhui Wang",
+      "Furu Wei",
+      "Li Dong",
+      "Hangbo Bao",
+      "Nan Yang",
+      "Ming Zhou"
+    ],
+    "year": 2020,
+    "url": "https://arxiv.org/abs/2002.10957",
+    "arxiv": "2002.10957",
+    "doi": "10.48550/arXiv.2002.10957",
+    "verification_status": "verified",
+    "finding": "Foundational self-attention distillation paper, not sufficient identity for sentence-embedding weights. Publisher/maintainer model cards establish the separate encoder provenance below.",
+    "relevance": "Local dense retrieval uses a pretrained sentence encoder from the MiniLM family. No distillation training or original MiniLM experiments were reproduced here.",
+    "implemented": true,
+    "implementation_scope": "Pretrained encoder inference component only, as inspected in research/advanced_retrieval.py; this audit did not execute inference or validate scores.",
+    "model_identity": {
+      "repository": "Xenova/all-MiniLM-L6-v2",
+      "revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+      "artifact": "onnx/model_quantized.onnx",
+      "source_url": "https://huggingface.co/Xenova/all-MiniLM-L6-v2/blob/751bff37182d3f1213fa05d7196b954e230abad9/README.md",
+      "base_sentence_encoder": "sentence-transformers/all-MiniLM-L6-v2",
+      "base_sentence_encoder_url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+      "pretrained_base": "nreimers/MiniLM-L6-H384-uncased",
+      "pretrained_base_url": "https://huggingface.co/nreimers/MiniLM-L6-H384-uncased",
+      "local_pooling": "attention-mask mean followed by L2 normalization",
+      "local_max_length": 256,
+      "naming_note": "The sentence encoder's v2 suffix is not evidence that the distinct MiniLMv2 paper is its identity. Base card describes a six-layer model retaining alternate layers from microsoft/MiniLM-L12-H384-uncased."
+    }
+  },
+  {
+    "key": "rrf",
+    "title": "Reciprocal rank fusion outperforms condorcet and individual rank learning methods",
+    "authors": [
+      "Gordon V. Cormack",
+      "Charles L. A. Clarke",
+      "Stefan Buettcher"
+    ],
+    "year": 2009,
+    "url": "https://doi.org/10.1145/1571941.1572114",
+    "doi": "10.1145/1571941.1572114",
+    "primary_metadata_url": "https://research.google/pubs/reciprocal-rank-fusion-outperforms-condorcet-and-individual-rank-learning-methods/",
+    "verification_status": "verified",
+    "finding": "Author-affiliated Google Research record verifies title, authors, SIGIR 2009 and pages 758-759; publisher search metadata verifies DOI. Direct ACM page fetch returned HTTP 403.",
+    "relevance": "Local hybrid ranking adds reciprocal ranks from BM25 and dense lists with k=60 and equal weights; this is an established fusion component, not a new retrieval algorithm.",
+    "implemented": true,
+    "implementation_scope": "rank_texts hybrid branch in research/advanced_retrieval.py: sum(1/(60+rank)), ranks starting at 1. No original SIGIR evaluation was reproduced by this audit."
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "audited_at": "2026-10-11",
+  "audit_type": "static_core_source_review",
+  "workflows_executed": false,
+  "repositories": [
+    {
+      "name": "AgentLaboratory",
+      "url": "https://github.com/SamuelSchmidgall/AgentLaboratory",
+      "commit": "d9017d90e329112d2a80b7712f37ee9094d2cd27",
+      "checkout": "complete",
+      "license_observation": "MIT in root LICENSE; inherited writing prompts need provenance review",
+      "reviewed_files": ["ai_lab_repo.py", "papersolver.py", "mlesolver.py", "inference.py", "tools.py", "utils.py", "requirements.txt", "LICENSE"]
+    },
+    {
+      "name": "AI-Researcher",
+      "url": "https://github.com/HKUDS/AI-Researcher",
+      "commit": "f9a6f8480860c193afff600eeffe3defcee8a978",
+      "checkout": "partial_core_files_restored_from_HEAD; full checkout blocked by colon in Windows filename",
+      "license_observation": "setup.cfg declares MIT; no LICENSE/COPYING found in HEAD file tree",
+      "reviewed_files": ["setup.cfg", "research_agent/run_infer_plan.py", "research_agent/inno/core.py", "research_agent/inno/workflow/flowcache.py", "research_agent/inno/workflow/flowgraph.py", "research_agent/inno/agents/inno_agent/exp_analyser.py", "paper_agent/writing.py", "paper_agent/section_composer.py", "paper_agent/experiments_composing.py", "benchmark_collection/utils/openai_utils.py"]
+    }
+  ]
+}
