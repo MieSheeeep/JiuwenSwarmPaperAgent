@@ -27,6 +27,14 @@ class DigitsTests(unittest.TestCase):
         np.testing.assert_array_equal(corrupt(x,'clean'),x)
         self.assertFalse(np.array_equal(a,x))
 
+    def test_temperature_can_change_cross_example_confidence_order(self):
+        # Same class remains argmax, but sample ranking is not generally invariant.
+        logits=np.array([[3.,2.,0.],[3.,1.5,1.5]])
+        scores=confidence_scores(logits,.5)
+        self.assertGreater(scores['msp'][0],scores['msp'][1])
+        self.assertLess(scores['temperature_msp'][0],scores['temperature_msp'][1])
+        np.testing.assert_array_equal(softmax(logits).argmax(1),softmax(logits/.5).argmax(1))
+
     def test_saved_weight_forward_matches_sklearn(self):
         from sklearn.neural_network import MLPClassifier
         import warnings

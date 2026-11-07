@@ -126,8 +126,10 @@ class LocalServices:
                     authors=ref.get('authors') or ['Source']
                     if isinstance(authors,str):authors=[authors]
                     authors=[author.strip() for author in authors]
+                    family=authors[0].split(',',1)[0].strip() if ',' in authors[0] else authors[0].split()[-1]
+                    authors=[a.split(',',1)[1].strip()+' '+a.split(',',1)[0].strip() if ',' in a else a for a in authors]
                     year=str(ref.get('published') or 'n.d.')[:4]
-                    label=tex_escape(authors[0].split()[-1]+(' et al.' if len(authors)>1 else ''))
+                    label=tex_escape(family+(' et al.' if len(authors)>1 else ''))
                     text=tex_escape(', '.join(authors)+'. '+str(ref.get('title') or ref['id'])+'. '+year+'.')
                     url=ref.get('url')
                     if isinstance(url,str) and url.startswith('https://') and not any(c in url for c in '{}\\'):

@@ -83,7 +83,12 @@ class DigitsProfile(ConnectedProfile):
             'environment':analysis['environment'],'rows_hash':analysis['rows_hash'],
             'figure_captions':[f['caption'] for f in analysis['figures']],
             'table_captions':[t['caption'] for t in analysis['tables']],
-            'metric_notes':'AURC mean prefix error after stable descending confidence sort. ECE:15 equal-width bins. Temperature fit on validation NLL, T in [0.05,20]. Error SD is model initialization variability, not an independent-dataset confidence interval. Severe noise preserves labels but may obscure image identity.'}
+            'metric_notes':'Overall accuracy is CORRECT predictions / total, not the error rate. NLL and ECE use all 360 test images, not only accepted examples. Pixels are divided by 16 into [0,1]; Gaussian sigma uses this normalized scale. Stratified split seed is 20261107. AURC is mean prefix error after stable descending confidence sort. ECE:15 equal-width bins. Temperature fit on validation NLL, T in [0.05,20]. Temperature preserves argmax labels but can change confidence ranking across examples. Error SD is model initialization variability, not an independent-dataset confidence interval. Severe noise preserves labels but may obscure image identity.'}
+
+    def repair_facts(self,inputs):
+        return [{'condition':r['condition'],'method':r['method'],'target':r['target'],
+                 'coverage':r['metrics']['coverage']['mean'],'accepted_error':r['metrics']['selective_risk']['mean']}
+                for r in inputs['analysis']['metrics']]
 
     async def execute(self,context):
         self.context=context;before={r['id'] for r in self.calls}
@@ -117,6 +122,21 @@ class DigitsProfile(ConnectedProfile):
             value=analyze(self.study,inputs['design'])
             value['experiment_hash']=Workflow(self.directory).state['stages']['experiment']['sha256']
         elif stage=='writing':
+            if context.feedback:
+                captures=[json.loads(p.read_text(encoding='utf-8')) for p in (self.directory/'artifacts').glob('writing-*.json')]
+                previous=max(captures,key=lambda a:a['created_at'])['payload']
+                issues=context.feedback[-1]['issues']
+                headings={i.get('location','').split(',')[0].strip() for i in issues if isinstance(i,dict)} & set(HEADINGS)
+                if not headings:headings={'Results','Discussion'}
+                patch=await self.json('Apply only the supplied review corrections to the named sections. Return replacements (list of heading,text), no other keys. Preserve measured values; use numeric ranges to avoid misleading grouping of rounded values. Mark explanations as untested inferences. Under 1000 words total. Do not change the experiment, model or analysis.',
+                    {'sections':[s for s in previous['sections'] if s['heading'] in headings],
+                     'issues':issues,'measured_values':self.repair_facts(inputs)},'writing/patch')
+                save_json(self.directory/'last_digits_patch.json',patch)
+                replacements={s['heading']:s['text'] for s in patch['replacements']}
+                if set(replacements)!=headings:raise ValueError('Unexpected digits repair sections')
+                value={**previous,'sections':[{'heading':s['heading'],'text':replacements.get(s['heading'],s['text'])} for s in previous['sections']]}
+                value['evidence_hash']=Workflow(self.directory).state['stages']['analysis']['sha256']
+                return StageResult(value,self.usage([r for r in self.calls if r['id'] not in before]))
             evidence=self.evidence(inputs)
             outline=await self.json('Plan a concise original empirical paper using supplied new experiment evidence. Return outline (at most 450 words) and limitations. Distinguish new measurements from algorithm novelty; this is a fresh study of established methods, not a new algorithm. Required headings: '+', '.join(HEADINGS),evidence,'writing/outline')
             save_json(self.directory/'outline.json',outline)
@@ -134,6 +154,15 @@ class DigitsProfile(ConnectedProfile):
                 figures=copy.deepcopy(inputs['analysis']['figures']),tables=copy.deepcopy(inputs['analysis']['tables']))
         elif stage=='review':
             audit=self.study.audit(inputs['design'])
+            if context.feedback and (self.directory/'last_digits_patch.json').exists():
+                patch=json.loads((self.directory/'last_digits_patch.json').read_text(encoding='utf-8'))
+                value=await self.json('Check only whether the supplied factual corrections address the earlier issues. Return decision (accept|revise|stop), issues (at most 2 unresolved substantive issues), target (writing if revise). Under 450 words. Numeric ranges and correctly rounded approximate values are valid. Do not invent new requirements or request experiments. This is a focused follow-up, not a fresh whole-manuscript review.',
+                    {'revised_sections':patch['replacements'],'earlier_issues':context.feedback[-1]['issues'],
+                     'measured_values':self.repair_facts(inputs),'replay':audit},'review/patch_audit')
+                if value.get('decision')=='revise':value['target']='writing'
+                value['scope']='Focused Flash follow-up after the earlier full factual audit; saved-weight replay rechecked.'
+                save_json(self.directory/'review_capture.json',value)
+                return StageResult(value,self.usage([r for r in self.calls if r['id'] not in before]))
             value=await self.json('Audit this manuscript against the measured evidence and observed saved-weight replay. Return decision (accept|revise|stop),issues (at most 3 concise substantive issues),target (writing if revise),finding_checks (list). Under 900 tokens total. Each criticism must cite an exact paper location and exact measured row or source. Do not override verified numbers by mentally recounting a partial list. This is an exploratory study, not an algorithm novelty claim. Do not demand SOTA or new experiments as a condition of truthful reporting; accept explicitly scoped observations if accurately described. No ICLR acceptance prediction. This is a single-model factual audit, not an independent cold multi-model panel.',
                 {'manuscript':inputs['writing'],'measured_evidence':self.evidence(inputs),'replay':audit},'review/audit')
             save_json(self.directory/'review_capture.json',value)
