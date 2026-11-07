@@ -9,3 +9,4 @@
 *.pdf binary
 *.png binary
 *.jpg binary
+/research/skillpacks/open-research-skills/** -text

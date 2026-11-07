@@ -2,6 +2,8 @@ import asyncio
 import json
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
 import unittest
 from zipfile import ZipFile
 from research.artifacts import save_json,atomic_write,file_digest
@@ -30,6 +32,12 @@ class DeliveryTests(unittest.TestCase):
                     self.assertFalse(any(n.endswith('PaperReview-AccessToken.txt') for n in names))
                     status=json.loads(archive.read('JiuwenSwarmPaperAgent/submission_status.json'))
                     self.assertFalse(status['competition_ready'])
+                    # Fresh unpack must resolve the pinned resources without this checkout.
+                    archive.extractall(root/'unpacked')
+                clean=subprocess.run([sys.executable,'-m','research.workflow.skillpack'],
+                    cwd=root/'unpacked/JiuwenSwarmPaperAgent/code',capture_output=True,text=True,timeout=30)
+                self.assertEqual(clean.returncode,0,clean.stderr)
+                self.assertEqual(json.loads(clean.stdout)['integrity'],'verified')
                 token=root/'fixture-token.txt';atomic_write(token,'offline_fixture_token_123456789')
                 receipt=root/'receipt.json';save_json(receipt,{'paper_sha256':'wrong'})
                 with self.assertRaises(ValueError):bind_review(workflow.directory,pdf,token,receipt)

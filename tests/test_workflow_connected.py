@@ -46,7 +46,8 @@ class ConnectedTests(unittest.TestCase):
                     'sections':[{'heading':h,'text':'Offline fixture paragraph. '*65} for h in
                         ['Abstract','Introduction','Related Work','Methods','Experimental Setup','Results','Discussion','Limitations','Conclusion','Reproducibility']],
                     'references':[{'id':'s1','title':'First source','url':'https://example.org/1'}]}
-                elif tag=='review/audit':value={'decision':'accept','issues':[]}
+                elif tag=='review/cold/meta':value={'decision':'accept','issues':[],'adjudications':[]}
+                elif tag.startswith('review/cold/'):value={'findings':[]}
                 else:raise AssertionError(tag)
                 return {'id':str(len(sent)),'output':json.dumps(value),'usage':{'total_tokens':5}}
             def compile_fixture(manuscript):
@@ -60,6 +61,15 @@ class ConnectedTests(unittest.TestCase):
             self.assertEqual(result['usage']['calls'],len(sent))
             self.assertEqual(w.artifact('experiment')['payload']['protocol_hash'],w.state['stages']['design']['sha256'])
             self.assertTrue(w.artifact('analysis')['payload']['metrics'])
+            draft=next(messages for tag,messages in sent if tag=='writing/draft')
+            self.assertIn('Prepare Conference Manuscripts',draft[0]['content'])
+            self.assertIn('authoritative_facts',draft[1]['content'])
+            self.assertEqual(w.artifact('review')['payload']['decision'],'accept')
+            skill_tags={json.loads(p.read_text())['tag'] for p in (w.directory/'skill_usage').glob('*.json')}
+            self.assertIn('writing/draft',skill_tags)
+            self.assertIn('review/cold/meta',skill_tags)
+            call_ids={json.loads(p.read_text())['call_id'] for p in (w.directory/'skill_calls').glob('*.json')}
+            self.assertEqual(len(call_ids),len(skill_tags))
             before=len(sent)
             await Workflow(w.directory).run(profile.registry())
             self.assertEqual(before,len(sent))

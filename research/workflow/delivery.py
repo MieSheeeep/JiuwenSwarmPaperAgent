@@ -93,6 +93,25 @@ def build_release(project,compiled, *, team='JiuwenSwarmPaperAgent'):
     root=Path(__file__).resolve().parents[2]
     copy('paper/iclr2026_conference.sty',root/'output/paper/iclr2026_conference.sty')
     for path in (root/'research/workflow').glob('*.py'):copy('code/research/workflow/'+path.name,path)
+    from .skillpack import SkillPack
+    skills=SkillPack();skills.verify()
+    for name in ['manifest.json',*skills.manifest['files']]:
+        copy('code/research/skillpacks/open-research-skills/'+name,skills.root/name)
+    for path in (project/'skill_usage').glob('*.json'):
+        copy('provenance/skill_usage/'+path.name,path)
+    for path in (project/'skill_calls').glob('*.json'):
+        copy('provenance/skill_calls/'+path.name,path)
+    review=workflow.artifact('review')['payload']
+    if review.get('round'):
+        review_dir=(project/review['round']).resolve()
+        if not review_dir.is_relative_to(project/'cold_reviews'):
+            raise ValueError('Cold review directory must belong to project')
+        # These files were constructed by cold_review, never traverse the author workspace.
+        for name in ('isolation.json','execution.json','decision.json','meta_capture.json',
+                     'claim_support.json','method_correctness.json','comparison_fairness.json',
+                     'reproducibility.json','significance.json','manuscript.json',
+                     'artifact/README.txt','artifact/replay.py','artifact/evidence.json'):
+            copy('provenance/cold_review/'+name,review_dir/name)
     for name in ('__init__.py','artifacts.py','contracts.py','model_gateway.py','agent_invocation.py','literature.py'):
         copy('code/research/'+name,root/'research'/name)
     for path in (root/'baseline').glob('*.py'):copy('code/baseline/'+path.name,path)
