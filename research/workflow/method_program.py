@@ -23,12 +23,12 @@ class Program:
                  ast.Expr,ast.Name,ast.Constant,ast.List,ast.Tuple,ast.Dict,ast.Set,ast.Load,ast.Store,
                  ast.Subscript,ast.Slice,ast.Call,ast.Attribute,ast.keyword,ast.Lambda,
                  ast.ListComp,ast.SetComp,ast.GeneratorExp,ast.comprehension,ast.Compare,ast.BoolOp,
-                 ast.UnaryOp,ast.BinOp,ast.Add,ast.Sub,ast.Mult,ast.Div,ast.USub,ast.Not,ast.And,ast.Or,
+                 ast.UnaryOp,ast.BinOp,ast.Add,ast.Sub,ast.Mult,ast.Div,ast.BitAnd,ast.BitOr,ast.USub,ast.Not,ast.And,ast.Or,
                  ast.Eq,ast.NotEq,ast.Lt,ast.LtE,ast.Gt,ast.GtE,ast.In,ast.NotIn,ast.IfExp)
         for node in ast.walk(function):
             if not isinstance(node,allowed):raise MethodError('Unsupported syntax: '+type(node).__name__)
-            if isinstance(node,ast.Attribute) and node.attr not in ('lower','split','count','get','append','intersection','union'):
-                raise MethodError('Unsupported attribute')
+            if isinstance(node,ast.Attribute) and node.attr not in ('lower','split','count','get','append','intersection','union','add'):
+                raise MethodError('Unsupported attribute: '+node.attr)
             if isinstance(node,ast.Name) and node.id.startswith('_'):raise MethodError('Private names forbidden')
         self.body=function.body
 
@@ -37,7 +37,7 @@ class Program:
         if self.fuel<0:raise MethodError('Operation limit reached')
 
     def sequence(self,value):
-        if not isinstance(value,(list,tuple,set,dict,str)) or len(value)>500:
+        if not isinstance(value,(list,tuple,set,dict,str)) or len(value)>50000:
             raise MethodError('Bounded sequence required')
         return value
 
@@ -64,7 +64,8 @@ class Program:
             a,b=self.expression(node.left,env),self.expression(node.right,env)
             if isinstance(node.op,ast.Mult) and (isinstance(a,int) and abs(a)>1000 or isinstance(b,int) and abs(b)>1000):
                 raise MethodError('Multiplication bound')
-            fn={ast.Add:operator.add,ast.Sub:operator.sub,ast.Mult:operator.mul,ast.Div:operator.truediv}[type(node.op)]
+            fn={ast.Add:operator.add,ast.Sub:operator.sub,ast.Mult:operator.mul,ast.Div:operator.truediv,
+                ast.BitAnd:operator.and_,ast.BitOr:operator.or_}[type(node.op)]
             value=fn(a,b)
             if isinstance(value,(str,list)) and len(value)>50000:raise MethodError('Value size bound')
             return value
@@ -108,17 +109,17 @@ class Program:
                 name=node.func.id
                 functions={'len':len,'set':set,'list':list,'str':str,'min':min,'max':max,'sum':sum,'sorted':sorted}
                 if name not in functions:raise MethodError('Unsupported call')
-                if name in ('set','list','sum','sorted'):self.sequence(args[0])
+                if name in ('set','list','sum','sorted') and args:self.sequence(args[0])
                 return functions[name](*args,**kwargs)
             if isinstance(node.func,ast.Attribute):
                 value=self.expression(node.func.value,env);name=node.func.attr
                 permitted=((isinstance(value,str) and name in ('lower','split','count')) or
                     isinstance(value,dict) and name=='get' or isinstance(value,list) and name=='append' or
-                    isinstance(value,set) and name in ('intersection','union'))
+                    isinstance(value,set) and name in ('intersection','union','add'))
                 if not permitted:raise MethodError('Method receiver mismatch')
-                if name=='append' and len(value)>=500:raise MethodError('List size limit')
+                if name in ('append','add') and len(value)>=500:raise MethodError('Collection size limit')
                 result=getattr(value,name)(*args,**kwargs)
-                if isinstance(result,list) and len(result)>500:raise MethodError('List size limit')
+                if isinstance(result,list) and len(result)>50000:raise MethodError('List size limit')
                 return result
             raise MethodError('Indirect calls forbidden')
         raise MethodError('Unsupported expression')
@@ -135,16 +136,21 @@ class Program:
                 done,value=self.statements(node.body if self.expression(node.test,env) else node.orelse,env)
                 if done:return done,value
             elif isinstance(node,ast.For):
-                if not isinstance(node.target,ast.Name) or node.orelse:raise MethodError('Simple for required')
+                if node.orelse:raise MethodError('Simple for required')
                 for item in self.sequence(self.expression(node.iter,env)):
-                    env[node.target.id]=item
+                    if isinstance(node.target,ast.Name):env[node.target.id]=item
+                    elif isinstance(node.target,ast.Tuple) and all(isinstance(n,ast.Name) for n in node.target.elts):
+                        if not isinstance(item,(tuple,list)) or len(item)!=len(node.target.elts):
+                            raise MethodError('Unpacking shape mismatch')
+                        for name,value in zip(node.target.elts,item):env[name.id]=value
+                    else:raise MethodError('Simple for target required')
                     done,value=self.statements(node.body,env)
                     if done:return done,value
             else:raise MethodError('Unsupported statement')
         return False,None
 
     def select(self,question,passages,budget):
-        self.fuel=30000
+        self.fuel=100000
         # Only public data is projected into the interpreter.
         docs=[{k:p[k] for k in ('id','title','text')} for p in passages]
         if len(docs)>100 or sum(len(p['text']) for p in docs)>100000:raise MethodError('Input size limit')

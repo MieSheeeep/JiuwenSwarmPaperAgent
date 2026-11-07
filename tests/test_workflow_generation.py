@@ -38,6 +38,21 @@ class GenerationTests(unittest.TestCase):
             Program('def select(question, passages, budget):\n return ["a","b"]').select(
                 'q',[{'id':x,'title':x,'text':x} for x in ('a','b')],1)
 
+    def test_real_generation_patterns_and_long_paragraph(self):
+        source='''def select(question, passages, budget):
+    q = set(question.lower().split())
+    scored = [(len(q & set(p["text"].lower().split())), p["id"]) for p in passages]
+    chosen = []
+    seen = set()
+    for value, pid in sorted(scored, key=lambda x: -x[0]):
+        if pid not in seen and len(chosen) < budget:
+            seen.add(pid)
+            chosen.append(pid)
+    return chosen
+'''
+        self.assertEqual(Program(source).select('Paris',
+            [{'id':'a','title':'Long paragraph','text':'Paris '+'text '*900}],1),['a'])
+
     def test_public_data_preparation_is_deterministic_and_cached(self):
         count=[]
         def fetch(url):

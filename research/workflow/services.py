@@ -76,6 +76,9 @@ class LocalServices:
                r'\usepackage{hyperref,booktabs,graphicx}',r'\iclrfinalcopy',
                r'\title{'+tex_escape(manuscript['title'])+'}',r'\author{Research Agent}',
                r'\begin{document}',r'\maketitle']
+        if manuscript.get('draft_status')=='requires_revision':
+            lines += [r'\fancyhead[L]{Unapproved model draft -- internal review requested revision}',
+                      r'\noindent\textbf{Draft status: requires revision.} This generated manuscript has not passed internal review. See the accompanying review report.']
         refs=manuscript.get('references',[])
         def prose(text):
             result=tex_escape(text)
@@ -99,6 +102,7 @@ class LocalServices:
                 if isinstance(ref,dict):
                     authors=ref.get('authors') or ['Source']
                     if isinstance(authors,str):authors=[authors]
+                    authors=[author.strip() for author in authors]
                     year=str(ref.get('published') or 'n.d.')[:4]
                     label=tex_escape(authors[0].split()[-1]+(' et al.' if len(authors)>1 else ''))
                     text=tex_escape(', '.join(authors)+'. '+str(ref.get('title') or ref['id'])+'. '+year+'.')

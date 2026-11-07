@@ -70,9 +70,13 @@ class JiuwenBackend:
                 wall_seconds=3600,count_tokens=token_count)
         gateway=self.gateways[key]
         before=gateway.totals()
+        output_limit=(3500 if step=='writing/patch' else
+                      500 if step=='review/patch_audit' else
+                      7000 if context.stage=='writing' else
+                      180 if context.stage in ('pilot','experiment') else 3500)
         async def invoke(on_response):
-            return await invoke_agent(gateway.config,messages,3500,on_response)
-        row=await gateway.call(messages,context.stage+'/'+str(step),max_tokens=3500,invoke=invoke)
+            return await invoke_agent(gateway.config,messages,output_limit,on_response)
+        row=await gateway.call(messages,context.stage+'/'+str(step),max_tokens=output_limit,invoke=invoke)
         after=gateway.totals()
         return {**row,'accounted_usage':{'calls':after['api_calls']-before['api_calls'],
             'tokens':after['known_api_tokens']-before['known_api_tokens']}}

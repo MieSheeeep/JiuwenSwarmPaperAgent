@@ -41,6 +41,18 @@ class ConnectedProfile:
                                {'role':'user','content':json.dumps(data,ensure_ascii=False)}],tag)
         return object_json(response['output'])
 
+    def revision_facts(self,inputs):
+        rows=inputs['experiment']['results']
+        return {'metrics':inputs['analysis']['metrics'],
+            'dev_tasks':len(inputs['design']['split']['dev']),
+            'test_tasks':len(inputs['design']['split']['test']),
+            'experiment_conditions':len(rows),
+            'experiment_answer_calls':len({c for r in rows for c in r['call_ids']}),
+            'experiment_provider_tokens':sum(r['tokens'] for r in rows),
+            'mean_documents_definition':'Final answer-call context size ONLY. Provider tokens include all adaptive calls.',
+            'source_notes':'Read excerpts only; omit unsupported literature dataset counts or superiority claims.',
+            'causality':'No selected-document mechanism audit or input/output token decomposition was part of this study.'}
+
     def adapter(self):
         workflow=Workflow(self.directory)
         constraints=workflow.artifact('topic')['payload']['constraints']
@@ -59,6 +71,22 @@ class ConnectedProfile:
         self.context=context
         before={r['id'] for r in self.calls}
         stage=context.stage;inputs=context.inputs
+        # Writing/review receive aggregate evidence and illustrative cases, not a duplicate
+        # of the entire response ledger. Original rows remain immutable on disk.
+        paper_inputs={**inputs}
+        if 'experiment' in inputs:
+            experiment=inputs['experiment']
+            paper_inputs['experiment']={k:v for k,v in experiment.items() if k!='results'}
+            paper_inputs['experiment']['result_rows']=len(experiment['results'])
+            cited_text=json.dumps(inputs.get('writing',{}),ensure_ascii=False)+json.dumps(context.feedback,ensure_ascii=False)
+            cited_ids=set(re.findall(r'\b[a-f0-9]{24}\b',cited_text))
+            paper_inputs['experiment']['cited_result_rows']=[r for r in experiment['results'] if r['task_id'] in cited_ids]
+            paper_inputs['runtime_semantics']={
+                'adaptive_top2_to4':'BM25 top2 first; if returned sufficient=false, call again with top4. Both calls charged.',
+                'pilot':'Only dev tasks are used for schema validation; no method tuning from pilot accuracy.',
+                'normalization':'Lowercase, remove punctuation and English articles; collapse whitespace; yes/no exact match; multiset token F1.',
+                'token_interpretation':'Total provider tokens include both input context and output. Number of documents does not imply equal context token lengths.'}
+            paper_inputs['runtime_semantics']['document_metric']='Mean documents is FINAL answer-call context size only; adaptive earlier calls are charged in provider tokens, not added to this final-context document count.'
         if stage=='literature':
             if self.client is None:
                 from research.literature import ArxivClient
@@ -74,7 +102,7 @@ class ConnectedProfile:
             notes=await self.json('Read supplied sources. Return comparison (string), limitations (list). Mark excerpt/abstract reading limits. Do not claim novelty.',sources,'literature/compare')
             value={**notes,'sources':sources}
         elif stage=='question':
-            value=await self.json('Form one falsifiable QA retrieval question from sources. Return question,hypothesis,source_ids,falsification. A new document-selection function can be generated and compared with top2, all documents, model-sufficiency top2-to4. Keep scope within document selection; do not claim general algorithm invention.',inputs,'question/propose')
+            value=await self.json('Form one falsifiable QA retrieval question from sources. Return question,hypothesis,source_ids,falsification. Executable capability: a single question-conditioned lexical document-selection function, using only Python string/set operations and sorting, compared with BM25 top2, all documents, model-sufficiency top2-to4. No embeddings, cross-encoder, trained scorer or extra model probes. Available metrics only answer exact match, token F1, mean documents and provider tokens. No supporting-fact accuracy or significance test is implemented. Keep hypotheses within these capabilities.',inputs,'question/propose')
         elif stage=='design':
             adapter=self.adapter();tasks=adapter._load()
             value={'dataset':file_digest(adapter.dataset),'dataset_path':str(adapter.dataset),
@@ -84,7 +112,7 @@ class ConnectedProfile:
                 'acceptance':inputs['question']['falsification'],'hypothesis':inputs['question']['hypothesis'],
                 'selection_note':'Human-configured QA task family; adapter choices fixed before labels are scored.'}
             if inputs['topic']['constraints'].get('generate_method',True):
-                spec=await self.json('Design a new document-selection policy that tests the proposed hypothesis. Return name (unique snake_case), budget (integer 1..4),description,motivation. Input is question and public document id/title/text only. Baselines already cover fixed_top2,fixed_all,adaptive_top2_to4. Do not use labels or test outcomes.',
+                spec=await self.json('Design a concrete lexical document-selection policy that tests the proposed hypothesis. Return name (unique snake_case), budget (integer 1..4),description,motivation. Implementable operations are string lower/split/count, sets/intersections, arithmetic, sorting, finite iteration. No embeddings, cross-encoder, learned scorer, imports, extra model calls or sufficiency probes. Choose explicit scoring and stopping rules rather than suggesting alternatives. Input is question and public document id/title/text only. Baselines cover fixed_top2,fixed_all,adaptive_top2_to4. No labels or test outcomes.',
                     {'question':inputs['question'],'sources':inputs['literature'],'interface':'select(question,passages,budget) -> list of IDs'},'design/propose_method')
                 if (not re.fullmatch('[a-z][a-z0-9_]{2,50}',spec.get('name','')) or
                     spec['name'] in value['methods'] or type(spec.get('budget')) is not int or
@@ -133,9 +161,15 @@ class ConnectedProfile:
             value=await self.adapter().analyze(inputs['design'],self.experiment_directory())
             value['experiment_hash']=Workflow(self.directory).state['stages']['experiment']['sha256']
         elif stage=='writing':
-            outline=await self.json('Create paper outline with sections and claim-to-evidence links. Return outline and limitations.',inputs,'writing/outline')
+            if len(context.feedback)>=2:
+                return await self.patch_manuscript(context,before)
+            writing_inputs=paper_inputs if context.feedback else inputs
+            outline=await self.json('Create paper outline with sections and claim-to-evidence links. Return outline and limitations.',writing_inputs,'writing/outline')
             save_json(self.directory/'outline.json',outline)
-            value=await self.json('Write a complete English scientific short paper. Return title, sections (list of heading,text), references (list of source objects). Include Abstract, Introduction, Related Work, Methods, Experimental Setup, Results, Discussion, Limitations, Conclusion, Reproducibility. At least 1800 words, full paragraphs. All measurements must match supplied analysis. Cite only known sources. Disclose human-selected family, registered execution, abstract/excerpt limits and uncertainty. No fabricated experiments or novelty.',{'inputs':inputs,'outline':outline,'feedback':context.feedback},'writing/draft')
+            value=await self.json('Write a complete English scientific short paper. Return title, sections (list of heading,text), references (list of source objects). Include Abstract, Introduction, Related Work, Methods, Experimental Setup, Results, Discussion, Limitations, Conclusion, Reproducibility. At least 1800 words, full paragraphs. All measurements must match supplied analysis. Cite only known sources. Disclose human-selected family, registered execution, abstract/excerpt limits and uncertainty. No fabricated experiments or novelty.',{'inputs':writing_inputs,'outline':outline,'feedback':context.feedback},'writing/draft')
+            save_json(self.directory/'model_draft_capture.json',value)
+            for section in value['sections']:
+                section['heading']=re.sub(r'^\s*\d+(?:\.\d+)*[.)]?\s+','',section['heading']).strip()
             value['evidence_hash']=Workflow(self.directory).state['stages']['analysis']['sha256']
             value['measured_results']=inputs['analysis']['metrics']
             required={'abstract','introduction','related work','methods','experimental setup','results',
@@ -151,7 +185,20 @@ class ConnectedProfile:
             value['references']=[{k:canonical[r['id']].get(k) for k in ('id','title','authors','published','url')}
                                   for r in value['references']]
         elif stage=='review':
-            value=await self.json('Review actual manuscript against sources, frozen design, results and analysis. Return decision (accept/revise/stop),issues (list),target (earlier stage if revise). Check numeric claims, citation identity, complete sections and interpretation. Do not assign official review score.',inputs,'review/audit')
+            if (self.directory/'last_manuscript_patch.json').exists() and len(context.feedback)>=2:
+                patch=json.loads((self.directory/'last_manuscript_patch.json').read_text(encoding='utf-8'))
+                focused=[s for s in patch['replacements'] if s['heading'] in ('Methods','Experimental Setup','Discussion','Conclusion')]
+                value=await self.json('Perform a concise final factual audit. Return ONLY {"decision":"accept|revise|stop","issues":["at most three SHORT unresolved substantive issues"],"target":"writing"}. Under 150 words. Do not list resolved issues. Prior extended audit resolved literature/scope issues; only verify the supplied revised sections against exact facts. Renderer strips author-name whitespace. Negative results are valid. Check final-context document count, dev/test distinction, complete experiment costs and causal restraint. Do not demand new experiments.',
+                    {'revised_sections':focused,
+                     'facts':self.revision_facts(inputs)},'review/patch_audit')
+                return StageResult(value,self.usage([r for r in self.calls if r['id'] not in before]))
+            review_inputs={**paper_inputs,'literature':{**inputs['literature'],'sources':[
+                {**p,'chunks':p.get('chunks',[])[:3],'review_excerpt_note':'Limited review excerpt; full saved source reading remains in literature artifact.'}
+                for p in inputs['literature']['sources']]}}
+            value=await self.json('Review actual manuscript against sources, frozen design, results and analysis. Return decision (accept/revise/stop),issues (list),target (exact stage name: writing or analysis if revise). Check numeric claims, citation identity, complete sections and interpretation. Relevant raw case rows and authoritative runtime semantics are supplied. A negative result is valid; do not request tuning on held-out answers or new experiments. Request writing fixes for unsupported interpretations. Do not assign official review score.',review_inputs,'review/audit')
+            save_json(self.directory/'model_review_capture.json',value)
+            if value.get('decision')=='revise' and value.get('target') in ('results_and_discussion','manuscript','results','discussion','methods'):
+                value['target']='writing'
         elif stage=='export':
             value=self.compiler(inputs['writing'])
             # Compilation is an objective check, not a claim of scientific peer review.
@@ -169,6 +216,26 @@ class ConnectedProfile:
                 value['files'][value['delivery']['archive']]=value['delivery']['sha256']
             value['external_review']='pending'
         else:raise ValueError('Unsupported stage')
+        return StageResult(value,self.usage([r for r in self.calls if r['id'] not in before]))
+
+    async def patch_manuscript(self,context,before):
+        captures=[json.loads(p.read_text(encoding='utf-8')) for p in (self.directory/'artifacts').glob('writing-*.json')]
+        if not captures:raise ValueError('No prior manuscript for targeted revision')
+        manuscript=max(captures,key=lambda a:a['created_at'])['payload']
+        headings={'Methods','Experimental Setup','Discussion','Related Work','Conclusion','Reproducibility'}
+        patch=await self.json('Correct only supplied manuscript sections using review issues and authoritative facts. Return replacements (list of heading,text) and optional title. Full English paragraphs. Correct resumed-segment resource totals to full experiment costs. Mean documents is final-context only; all adaptive calls counted in tokens. Do not invent source dataset counts, causal explanations or evidence inspections. Do not reproduce criticism as claims. Keep all section headings. Prefer cautious accurate source summaries.',
+            {'sections':[s for s in manuscript['sections'] if s['heading'] in headings],
+             'issues':context.feedback[-1]['issues'],'facts':self.revision_facts(context.inputs)},'writing/patch')
+        if 'replacements' not in patch and 'sections' in patch:
+            patch['replacements']=patch.pop('sections')
+        save_json(self.directory/'last_manuscript_patch.json',patch)
+        replacements={s['heading']:s['text'] for s in patch['replacements']}
+        if not set(replacements)<=headings or not replacements:raise ValueError('Unexpected revision sections')
+        value={**manuscript,'sections':[{'heading':s['heading'],'text':replacements.get(s['heading'],s['text'])}
+                                        for s in manuscript['sections']]}
+        if patch.get('title'):value['title']=patch['title']
+        value['evidence_hash']=Workflow(self.directory).state['stages']['analysis']['sha256']
+        if sum(len(s['text'].split()) for s in value['sections'])<1800:raise ValueError('Revised paper too short')
         return StageResult(value,self.usage([r for r in self.calls if r['id'] not in before]))
 
     def experiment_directory(self):

@@ -134,4 +134,13 @@ class JsonQAAdapter:
                 'provider_tokens':sum(r['tokens'] for r in rows)}
         return {'metrics':metrics,'claims':[],
                 'limitations':['Registered local QA task family; no general novelty or official benchmark score.'],
+                'paired_vs_fixed_top2':{
+                    method:{'gains':sum(r['em']>next(b['em'] for b in value['rows'] if b['method']=='fixed_top2' and b['task_id']==r['task_id'])
+                                            for r in value['rows'] if r['method']==method),
+                            'losses':sum(r['em']<next(b['em'] for b in value['rows'] if b['method']=='fixed_top2' and b['task_id']==r['task_id'])
+                                            for r in value['rows'] if r['method']==method)}
+                    for method in design['methods'] if method!='fixed_top2'},
+                'illustrative_cases':[{'task_id':task_id,'question':task['question'],'gold':task['answer'],
+                    'responses':[r for r in value['rows'] if r['task_id']==task_id]}
+                    for task_id,task in list(tasks.items())[:6]],
                 'raw_hash':value['rows_hash']}

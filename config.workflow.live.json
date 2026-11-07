@@ -1,0 +1,7 @@
+{
+  "literature_query": "ti:Adaptive-RAG OR ti:ReAct OR ti:HotpotQA OR ti:Self-RAG",
+  "dataset_provider": "hotpotqa-distractor",
+  "dataset_rows": 40,
+  "dataset_seed": 20261107,
+  "generate_method": true
+}
