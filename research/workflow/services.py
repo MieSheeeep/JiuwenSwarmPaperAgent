@@ -84,6 +84,13 @@ class LocalServices:
             lines += [r'\fancyhead[L]{Generated draft -- final internal review pending}',
                       r'\noindent\textbf{Draft status: pending review.} This manuscript has not passed a final internal review.']
         refs=manuscript.get('references',[])
+        figure_files={}
+        for figure in manuscript.get('figures',[]):
+            path=(self.directory/figure['path']).resolve()
+            if not path.is_relative_to(self.directory) or path.suffix not in ('.png','.pdf') or file_digest(path)!=figure['sha256']:
+                raise ValueError('Figure outside project or identity mismatch')
+            name='figure-'+str(len(figure_files)+1)+path.suffix
+            shutil.copy2(path,paper/name);figure_files[figure['path']]=name
         def prose(text):
             result=tex_escape(text)
             for index,ref in enumerate(refs):
@@ -100,6 +107,18 @@ class LocalServices:
                 for name,row in manuscript['measured_results'].items():
                     lines.append(tex_escape(name)+f" & {row['exact']:.3f} & {row['f1']:.3f} & {row['mean_documents']:.3f} & {row['provider_tokens']}"+r'\\')
                 lines += [r'\bottomrule\end{tabular}\caption{Metrics recomputed from saved answers.}\end{table}']
+            for table in manuscript.get('tables',[]):
+                if table['section'].lower()!=heading.lower():continue
+                columns=table['columns'];rows=table['rows']
+                if not columns or any(len(row)!=len(columns) for row in rows):raise ValueError('Invalid table dimensions')
+                lines += [r'\begin{table}[ht]\centering\scriptsize',r'\begin{tabular}{'+'l'*len(columns)+'}',r'\toprule',
+                          ' & '.join(tex_escape(c) for c in columns)+r'\\ \midrule']
+                lines += [' & '.join(tex_escape(v) for v in row)+r'\\' for row in rows]
+                lines += [r'\bottomrule\end{tabular}',r'\caption{'+tex_escape(table['caption'])+'}',r'\end{table}']
+            for figure in manuscript.get('figures',[]):
+                if figure['section'].lower()!=heading.lower():continue
+                lines += [r'\begin{figure}[ht]\centering',r'\includegraphics[width=\linewidth]{'+figure_files[figure['path']]+'}',
+                          r'\caption{'+tex_escape(figure['caption'])+'}',r'\end{figure}']
         if refs:
             lines += [r'\begin{thebibliography}{99}']
             for index,ref in enumerate(refs):

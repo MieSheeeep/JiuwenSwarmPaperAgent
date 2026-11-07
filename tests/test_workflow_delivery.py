@@ -14,6 +14,14 @@ from test_workflow_framework import registry
 
 
 class DeliveryTests(unittest.TestCase):
+    def test_external_figure_cannot_enter_paper(self):
+        with tempfile.TemporaryDirectory() as d:
+            project=Path(d)/'project';project.mkdir()
+            other=Path(d)/'private.png';other.write_bytes(b'not an image')
+            manuscript={'title':'Fixture','sections':[{'heading':'Results','text':'Fixture.'}],
+                'figures':[{'section':'Results','path':str(other),'sha256':file_digest(other),'caption':'outside'}]}
+            with self.assertRaises(ValueError):LocalServices(project).compile_paper(manuscript)
+
     def test_real_offline_pdf_previews_bundle_and_review_identity(self):
         async def check(root):
             workflow=Workflow.create(root/'project','Offline delivery integration')
