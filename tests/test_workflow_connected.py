@@ -44,7 +44,7 @@ class ConnectedTests(unittest.TestCase):
                 elif tag=='writing/outline':value={'outline':['Methods','Results'],'limitations':['offline']}
                 elif tag=='writing/draft':value={'title':'Offline integration fixture',
                     'sections':[{'heading':h,'text':'Offline fixture paragraph. '*65} for h in
-                        ['Abstract','Introduction','Related Work','Methods','Experimental Setup','Results','Discussion','Limitations','Conclusion','Reproducibility']],
+                        ['Abstract','Introduction','Related Work','Task, Data, and Protocol','Experimental Setup','Results','Discussion','Limitations','Conclusion','Reproducibility']],
                     'references':[{'id':'s1','title':'First source','url':'https://example.org/1'}]}
                 elif tag=='review/cold/meta':value={'decision':'accept','issues':[],'adjudications':[]}
                 elif tag.startswith('review/cold/'):value={'findings':[]}

@@ -61,14 +61,21 @@ async def cold_review(project, material, ask):
     execution.update(command=command, platform=platform.platform(), python=platform.python_version(),
         seconds=time.monotonic()-started, scope='Offline saved-answer rescoring; no model rerun or clean-room install.')
     save_json(round_dir/'execution.json', execution)
+    # The full artifact stays on disk; opaque provenance IDs add cost but no review evidence.
+    model_material={**public,'results':[
+        {k:r[k] for k in ('task_id','method','answer','em','f1','valid','documents','tokens') if k in r}
+        for r in public['results']]}
     reports = []
     for lens in LENSES:
-        report = await ask('Read as a cold reviewer with lens '+lens+'. Return findings (list of '
+        report = await ask('Read as a cold reviewer with lens '+lens+'. Return ONLY findings (list of '
             '{issue, severity:major|minor, evidence, repair}). Evidence must locate text or numeric rows in '
-            'supplied material. Read the manuscript and released analysis artifact only. A negative result '
+            'supplied material. Return at most TWO findings, prioritizing substantive errors. Entire response '
+            'under 900 tokens. Each field is one short sentence; no introduction, summary, or extra keys. '
+            'Read the manuscript and released analysis artifact only. A negative result '
             'is valid. Distinguish missing evidence from demonstrated error. No acceptance predictions. '
             'Artifact execution covers saved-answer rescoring only; explicitly state the remaining gaps.',
-            {'lens':lens,'released_material':public,'isolation':manifest,'artifact_execution':execution},
+            {'lens':lens,'released_material':model_material,'isolation':manifest,'artifact_execution':execution,
+             'projection_note':'Results omit opaque context_hash and call_ids; full rows remain in listed artifact/evidence.json.'},
             'review/cold/'+lens)
         if not isinstance(report.get('findings'),list):
             raise ValueError('Reviewer must return findings')
@@ -81,9 +88,10 @@ async def cold_review(project, material, ask):
     value = await ask('Adjudicate every finding independently. Return decision (accept|revise|stop), '
         'issues (list of actionable unresolved issues), target (writing|analysis if revise), '
         'adjudications (list of {id,status:confirmed|unsupported|underdetermined,reason,repair,cost}). '
+        'Entire response under 2500 tokens. Each reason and repair is at most one concise sentence. '
         'Do not average votes. Accept only with no unresolved major findings. Negative results are valid; '
         'no official review score or acceptance prediction. New experiments require a later author decision.',
-        {'released_material':public,'reports':reports,'artifact_execution':execution},'review/cold/meta')
+        {'released_material':model_material,'reports':reports,'artifact_execution':execution},'review/cold/meta')
     save_json(round_dir/'meta_capture.json', value)
     validate_adjudication(value, reports)
     if execution['exit_code'] != 0:

@@ -2,6 +2,7 @@
 import inspect
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from typing import Protocol
@@ -79,13 +80,16 @@ class LocalServices:
         if manuscript.get('draft_status')=='requires_revision':
             lines += [r'\fancyhead[L]{Unapproved model draft -- internal review requested revision}',
                       r'\noindent\textbf{Draft status: requires revision.} This generated manuscript has not passed internal review. See the accompanying review report.']
+        elif manuscript.get('draft_status')=='pending_review':
+            lines += [r'\fancyhead[L]{Generated draft -- final internal review pending}',
+                      r'\noindent\textbf{Draft status: pending review.} This manuscript has not passed a final internal review.']
         refs=manuscript.get('references',[])
         def prose(text):
             result=tex_escape(text)
             for index,ref in enumerate(refs):
                 if isinstance(ref,dict) and ref.get('id'):
                     result=result.replace(tex_escape('['+ref['id']+']'),r'\citep{ref'+str(index)+'}')
-            return result
+            return re.sub(r'\b[a-f0-9]{64}\b',lambda m:r'\nolinkurl{'+m.group(0)+'}',result)
         for section in manuscript['sections']:
             heading,text=section['heading'],section['text']
             if heading.lower()=='abstract':lines += [r'\begin{abstract}',prose(text),r'\end{abstract}']
@@ -94,7 +98,7 @@ class LocalServices:
                 lines += [r'\begin{table}[ht]\centering\small\begin{tabular}{lrrrr}\toprule',
                           r'Method & EM & F1 & Documents & Tokens\\ \midrule']
                 for name,row in manuscript['measured_results'].items():
-                    lines.append(tex_escape(name)+f" & {row['exact']:.3f} & {row['f1']:.3f} & {row['mean_documents']:.2f} & {row['provider_tokens']}"+r'\\')
+                    lines.append(tex_escape(name)+f" & {row['exact']:.3f} & {row['f1']:.3f} & {row['mean_documents']:.3f} & {row['provider_tokens']}"+r'\\')
                 lines += [r'\bottomrule\end{tabular}\caption{Metrics recomputed from saved answers.}\end{table}']
         if refs:
             lines += [r'\begin{thebibliography}{99}']

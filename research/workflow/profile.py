@@ -50,6 +50,8 @@ class ConnectedProfile:
         rows=inputs['experiment']['results']
         return {'metrics':inputs['analysis']['metrics'],
             'dev_tasks':len(inputs['design']['split']['dev']),
+            'dev_task_method_conditions':len(inputs['design']['split']['dev'])*len(inputs['design']['methods']),
+            'pilot_unit_note':'Pilot diagnostics rows counts task-method conditions, not independent tasks; dev_tasks is the number of distinct development questions.',
             'test_tasks':len(inputs['design']['split']['test']),
             'experiment_conditions':len(rows),
             'experiment_answer_calls':len({c for r in rows for c in r['call_ids']}),
@@ -189,6 +191,8 @@ class ConnectedProfile:
             save_json(self.directory/'model_draft_capture.json',value)
             for section in value['sections']:
                 section['heading']=re.sub(r'^\s*\d+(?:\.\d+)*[.)]?\s+','',section['heading']).strip()
+                if section['heading'].lower() in ('method','methodology','task, data, and protocol'):
+                    section['heading']='Methods'
             value['evidence_hash']=Workflow(self.directory).state['stages']['analysis']['sha256']
             value['measured_results']=inputs['analysis']['metrics']
             required={'abstract','introduction','related work','methods','experimental setup','results',
