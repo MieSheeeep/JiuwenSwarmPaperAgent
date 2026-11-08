@@ -174,9 +174,24 @@ class Workflow:
         for key in usage: self.state['usage'][key] += usage[key]
         self.state['status'] = 'ready'
         self._save('stage_completed', stage=stage)
-        if stage == 'pilot' and not result.payload['passed']:
-            self.state['status'] = 'needs_input'
-            self._save('pilot_failed', diagnostics=result.payload['diagnostics'])
+        if stage == 'pilot':
+            decision = result.payload.get('decision')
+            if decision == 'no_go':
+                self.state['status'] = 'pruned'
+                self._save('pilot_pruned', reason=result.payload.get('reason', 'Early termination by pilot gate'),
+                           diagnostics=result.payload.get('diagnostics', []))
+            elif decision == 'pivot':
+                pivot_target = result.payload.get('pivot_target', 'design')
+                if self.state['revisions'] >= self.state['limits']['revisions']:
+                    self.state['status'] = 'revision_limit'
+                    self._save('revision_limit', reason='pilot pivot limit reached')
+                else:
+                    self.state['revisions'] += 1
+                    self.state['feedback'].append({'round': self.state['revisions'], 'source': 'pilot_pivot', **result.payload})
+                    self.invalidate(pivot_target, reason=result.payload.get('reason', 'pilot pivot'))
+            elif not result.payload['passed']:
+                self.state['status'] = 'needs_input'
+                self._save('pilot_failed', diagnostics=result.payload['diagnostics'])
         if stage == 'review':
             decision = result.payload['decision']
             if decision == 'stop':
@@ -211,6 +226,8 @@ class Workflow:
             raise ValueError('Budget reconciliation required')
         if self.state['status']=='revision_limit':
             raise ValueError('Explicit invalidation required after revision limit')
+        if self.state['status'] == 'pruned':
+            raise ValueError('Pruned workflow cannot be resumed directly; explicit invalidation required')
         self.state['pause_requested'] = False; self.state['status'] = 'ready'
         self._save('resumed')
 
@@ -220,7 +237,7 @@ class Workflow:
         while self.next_stage():
             # Reload control flags so a separate pause command takes effect at stage boundaries.
             disk = json.loads(self.state_path.read_text(encoding='utf-8'))
-            if disk.get('pause_requested') or self.state['status'] in ('needs_input', 'revision_limit', 'budget_exceeded'):
+            if disk.get('pause_requested') or self.state['status'] in ('needs_input', 'revision_limit', 'budget_exceeded', 'pruned'):
                 self.state = disk; break
             stage = self.next_stage()
             if stage=='experiment' and not self.artifact('pilot')['payload']['passed']:
