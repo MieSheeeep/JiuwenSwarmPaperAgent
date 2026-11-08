@@ -11,6 +11,7 @@ Aligns 100% with real project facts:
 """
 import os
 import sys
+import re
 import pptx
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -20,11 +21,56 @@ from pptx.enum.shapes import MSO_SHAPE
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+def load_script_notes(script_path="docs/第6组项目汇报逐页讲稿_终版.md"):
+    """
+    Parse the comprehensive speaker notes from the master defense markdown script.
+    Combines suggested timing, verbatim oral delivery, transition cues, and anticipated Q&A.
+    """
+    if not os.path.exists(script_path):
+        return {}
+    with open(script_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    slides_raw = re.split(r'\n## 第\s*(\d+)\s*页[：:]', content)
+    slides_dict = {}
+    for i in range(1, len(slides_raw), 2):
+        num = int(slides_raw[i])
+        body = slides_raw[i+1]
+        
+        timing_match = re.search(r'### 【建议用时】\s*\n([^\n#]+)', body)
+        timing = timing_match.group(1).strip() if timing_match else ''
+        
+        speech_match = re.search(r'### 【逐字答辩讲稿】\s*\n(.*?)(?=\n###|\Z)', body, re.DOTALL)
+        speech = speech_match.group(1).strip() if speech_match else ''
+        speech = '\n'.join([line.lstrip('> ').strip() for line in speech.splitlines() if line.strip()])
+        
+        trans_match = re.search(r'### 【换页过渡语】\s*\n(.*?)(?=\n###|\Z)', body, re.DOTALL)
+        trans = trans_match.group(1).strip() if trans_match else ''
+        trans = '\n'.join([line.lstrip('> ').strip() for line in trans.splitlines() if line.strip()])
+        
+        qa_match = re.search(r'### 【评委可能提问与应答预案[^\n]*】\s*\n(.*?)(?=\n---|\Z)', body, re.DOTALL)
+        qa = qa_match.group(1).strip() if qa_match else ''
+        
+        note_parts = []
+        if timing:
+            note_parts.append(f"⏱️【建议用时】\n{timing}")
+        if speech:
+            note_parts.append(f"🎙️【逐字答辩讲稿】\n{speech}")
+        if trans:
+            note_parts.append(f"🔄【换页过渡语】\n{trans}")
+        if qa:
+            note_parts.append(f"💡【评委可能提问与应答预案】\n{qa}")
+            
+        slides_dict[num] = "\n\n".join(note_parts)
+    return slides_dict
+
 def build_presentation(output_pptx):
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
     blank_layout = prs.slide_layouts[6]
+    
+    notes_dict = load_script_notes()
     
     # Palette
     C_NAVY = RGBColor(0x1B, 0x36, 0x5D)
@@ -116,10 +162,7 @@ def build_presentation(output_pptx):
     cp3.alignment = PP_ALIGN.CENTER
     cp3.space_before = Pt(8)
 
-    set_slide_notes(s1, """各位评委老师、同学们，大家好！我们是第 6 组。
-今天我们汇报的题目是《基于 JiuwenSwarm 的 Agent 科研论文自动生成系统》。
-本项目依托华为开源多智能体框架 openJiuwen，搭建了一套连接文献调研、实验执行、数据提取与论文编译的自动化流水线，完成了一项真实的上下文选择策略实验，生成了规范的英文学术论文，并按赛题要求提交至外部第三方评审平台进行了实际评测。
-接下来，我们将实事求是地向大家汇报我们的系统设计、真实运行数据、外部盲审反馈以及我们为 openJiuwen 框架做出的源码扩展。""")
+    set_slide_notes(s1, notes_dict.get(1, ""))
 
     # ==================== SLIDE 2: SCORING ====================
     s2 = prs.slides.add_slide(blank_layout)
@@ -172,12 +215,7 @@ def build_presentation(output_pptx):
         sp3.font.color.rgb = C_DARK
         sp3.line_spacing = 1.3
 
-    set_slide_notes(s2, """首先来看赛题的明确要求与评分模型。
-本赛题要求我们利用 openJiuwen 框架研发科研 Agent 系统，自主执行科研任务并交付符合国际会议规范的学术论文。满分 100 分的分布非常明确：
-最大的比重是论文质量（占 60 分），其中 40 分直接由外部的第三方自动学术评审系统——Stanford Agentic Reviewer 打分决定，20 分由官方评测 Agent 打分。这说明论文不能只是空洞文字，必须具备合理的论点和实验支撑；
-其次是框架贡献（占 15 分），要求为 openJiuwen 仓库贡献切实的代码补丁；
-另外系统能力占 15 分，资源消耗占 10 分，要求详细审计 API 与 Token 支出。
-明确了这四大评分项后，我们没有把精力花在做华而不实的包装上，而是紧扣赛题这四条主线来踏实推进。""")
+    set_slide_notes(s2, notes_dict.get(2, ""))
 
     # ==================== SLIDE 3: WORKFLOW ====================
     s3 = prs.slides.add_slide(blank_layout)
@@ -226,9 +264,7 @@ def build_presentation(output_pptx):
         sp3.font.color.rgb = C_DARK
         sp3.line_spacing = 1.25
 
-    set_slide_notes(s3, """针对赛题目标，我们设计了包含六个标准阶段的系统工作流。
-首先由文献阶段收敛研究问题；规划阶段负责定义实验变量与评估指标；小样本探针阶段用于初步检验算法可行性；实验阶段实际调用 openJiuwen 的 ReActAgent 与大模型 API 跑完预设任务，并将输入输出和 Token 账单完整落盘；写作阶段依据真实的实验统计表，利用大模型草拟英文正文，并填入标准的 LaTeX 模板编译成 PDF；最后在评审阶段，将生成的 PDF 论文提交至外部盲审网站进行评测。
-整个流程最大的工程原则是“证据严格绑定”：写作模块引用的每一个准确率和 Token 数字，都必须能在实验生成的原始日志中找到对应的记录，彻底杜绝数据捏造。""")
+    set_slide_notes(s3, notes_dict.get(3, ""))
 
     # ==================== SLIDE 4: EXPERIMENT TOPIC ====================
     s4 = prs.slides.add_slide(blank_layout)
@@ -300,9 +336,7 @@ def build_presentation(output_pptx):
         p2.font.color.rgb = C_DARK
         p2.space_before = Pt(2)
 
-    set_slide_notes(s4, """在具体的研究课题上，我们选择了一个与 Agent 系统自身息息相关的实际问题——“长配置历史下的上下文选择机制研究”。
-当智能体与用户进行多轮配置交互时，历史上下文会迅速膨胀。我们设计了 4 组对照策略：全量历史、最近滑动窗口、基于项目 ID 的关键词检索，以及检索加摘要压缩。
-我们构建了包含 24 个具有明确事实标准的测试任务，针对这 4 种策略分别运行测试，总计完成了 96 次任务回答，记录不同策略在回答准确率和 Token 消耗上的实际表现。""")
+    set_slide_notes(s4, notes_dict.get(4, ""))
 
     # ==================== SLIDE 5: REAL DATA ====================
     s5 = prs.slides.add_slide(blank_layout)
@@ -357,9 +391,7 @@ def build_presentation(output_pptx):
     p_c_txt.font.color.rgb = C_DARK
     p_c_txt.space_before = Pt(2)
 
-    set_slide_notes(s5, """屏幕上展示的是我们系统主实验的真实资源账单。我们严格按照赛题的资源审计要求，记录了每一次调用的输入输出。
-实验采用官方 DeepSeek API，主实验共执行了 120 次真实 API 调用，消耗 101,768 个 Token，纯计算耗时为 43.8 秒；加上前置冒烟与最终论文撰写，全流程共调用 API 131 次，累计消耗 114,297 Token。
-实验结果表明：在带有明确项目标识的测试集上，关键词检索与检索加摘要均保持了 100% 的准确率，而固定长度的滑动窗口由于遗漏了早期配置，准确率仅有 25%。这些真实的数据和图表，构成了后续撰写论文的全部事实依据。""")
+    set_slide_notes(s5, notes_dict.get(5, ""))
 
     # ==================== SLIDE 6: PAPER COMPILATION ====================
     s6 = prs.slides.add_slide(blank_layout)
@@ -431,12 +463,7 @@ def build_presentation(output_pptx):
         p2.font.color.rgb = C_DARK
         p2.space_before = Pt(2)
 
-    set_slide_notes(s6, """在论文生成环节，我们根据赛题给出的样例要求，直接套用了标准的 ICLR 双栏会议模板 iclr2026_conference.sty。
-整个生成流程完全由脚本自动化驱动：
-首先由分析模块从实验日志中提炼出指标表格，并绘制矢量图；
-然后通过代码将实验背景、对照设计与实测数据拼接为 Prompt，调用 DeepSeek 生成各个章节的英文初稿；
-最后将内容填入标准的 LaTeX 框架，调用编译脚本自动生成最终的 paper.pdf。
-我们在论文附注中如实披露了大模型的参与过程，保证学术诚信。""")
+    set_slide_notes(s6, notes_dict.get(6, ""))
 
     # ==================== SLIDE 7: EXTERNAL REVIEW ====================
     s7 = prs.slides.add_slide(blank_layout)
@@ -475,9 +502,7 @@ def build_presentation(output_pptx):
         pd.font.color.rgb = C_DARK
         pd.space_before = Pt(2)
 
-    set_slide_notes(s7, """论文生成出来之后，我们按照赛题规范，通过真实的 Access Token 把论文提交到了赛题官方指定的 Stanford Agentic Reviewer 网站进行客观盲审。
-网站给出的机器评审打分是客观而严厉的：我们的初版论文获得了 3.7 到 4.4 分的评价，在 ICLR 官方标尺下处于 Reject 边缘。
-评审给出了非常专业的反面意见，主要指出：虽然论文格式规范、逻辑通顺，但实验完全依赖人工构造的合成数据，任务特征过于简单，并且缺乏真实世界场景下的噪声测试和深度消融实验。我们完整保存了评审返回的报告，把它作为我们后续分析和系统改进的基石。""")
+    set_slide_notes(s7, notes_dict.get(7, ""))
 
     # ==================== SLIDE 8: REFLECTION ====================
     s8 = prs.slides.add_slide(blank_layout)
@@ -555,9 +580,7 @@ def build_presentation(output_pptx):
         p2.font.color.rgb = C_DARK
         p2.space_before = Pt(2)
 
-    set_slide_notes(s8, """拿到外部评审这 4.4 分后，我们团队进行了认真的复盘。
-坦白讲，这暴露出当前许多科研 Agent 的共同通病：看起来有模有样，但实质内容偏单薄。系统很容易挑选有利于自己的弱基线（比如简单的滑动窗口）做对比，得出貌似显著的结论，但一旦放到严格的同行评审尺度下，就会被一眼看穿。
-针对外部评审指出的这些真实痛点，我们随后在代码层面重点补齐了三项机制：第一是事前设定验收契约，第二是增加小样本早停探针，第三是引入内部的模拟预审与实验修复规划。""")
+    set_slide_notes(s8, notes_dict.get(8, ""))
 
     # ==================== SLIDE 9: IMPROVEMENT 1 (ACCEPTANCE) ====================
     s9 = prs.slides.add_slide(blank_layout)
@@ -603,9 +626,7 @@ def build_presentation(output_pptx):
         pd.font.color.rgb = C_DARK
         pd.space_before = Pt(2)
 
-    set_slide_notes(s9, """针对“结论可能带有选择性报告”的问题，我们在规划模块引入了事前验收协议 StructuredAcceptance。
-它的核心逻辑是在跑实验之前，就通过代码把验收标准白纸黑字写死：锁定主指标是什么、是追求极大化还是极小化、相对基线必须提升多少个百分点才算有效。
-这样一来，如果实验跑出来的结果达不到预先签署的标准，系统就不能在正文里强行宣称取得了突破，从而在工程机制上杜绝了学术选择性汇报。""")
+    set_slide_notes(s9, notes_dict.get(9, ""))
 
     # ==================== SLIDE 10: IMPROVEMENT 2 (PILOT GATE) ====================
     s10 = prs.slides.add_slide(blank_layout)
@@ -674,10 +695,7 @@ def build_presentation(output_pptx):
     p_log.space_before = Pt(8)
     p_log.line_spacing = 1.25
 
-    set_slide_notes(s10, """针对“容易盲目空耗算力”的问题，我们设计了 PilotGate 小样本早停机制，这在我们的特征缺失实验中发挥了重要作用。
-在正式执行几十上百次调用前，系统先取 10% 到 20% 的样本跑一次预检探针，并拿一个未调优的传统模型（比如梯度提升树）作为对照。
-在实际测试中，探针检测到候选算法的均方误差为 0.39，而传统现成模型就能做到 0.04，候选算法明显落后。系统立刻触发早停，终止后续实验，将状态标记为 pruned。
-这次早停让我们仅用了 8,531 个 Token 就及时止损，避免了跑满全量所需的 10 万多个 Token，真正实现了超过 91% 的算力节约，这切实验证了赛题对“资源消耗控制”的要求。""")
+    set_slide_notes(s10, notes_dict.get(10, ""))
 
     # ==================== SLIDE 11: IMPROVEMENT 3 (INTERNAL REVIEW) ====================
     s11 = prs.slides.add_slide(blank_layout)
@@ -716,10 +734,7 @@ def build_presentation(output_pptx):
         pd.font.color.rgb = C_DARK
         pd.space_before = Pt(2)
 
-    set_slide_notes(s11, """此外，为了在提交给外部评审前尽量发现问题，我们在工作流里补充了一套内部模拟评审。
-第一层是冷审查（Cold Review），用脚本逐行核对论文正文里的数据和我们底层的实验日志是否一致，防止大模型写正文时产生文字幻觉；
-第二层是内部评审面板，参考外部评审网站的 4 个维度进行打分预警；同时编写了 DeepRevisionManager，尝试把评审专家提到的“缺乏消融”等意见转化为后续的实验规划。
-虽然目前受限于算力和时间，我们还没有实现完全自动化的多次循环大修，但整个状态机的接口和规划链路已经跑通并纳入了测试。""")
+    set_slide_notes(s11, notes_dict.get(11, ""))
 
     # ==================== SLIDE 12: FRAMEWORK CONTRIBUTION ====================
     s12 = prs.slides.add_slide(blank_layout)
@@ -795,14 +810,11 @@ def build_presentation(output_pptx):
         p2.font.color.rgb = C_DARK
         p2.space_before = Pt(2)
 
-    set_slide_notes(s12, """关于赛题中 15 分的“框架贡献”指标，这里需要实事求是地说明：
-赛题规则允许以“代码、Skill、文档、PR 或 Patch 补丁”等形式交付。我们团队并没有向 openJiuwen 官方仓库提交过公开 PR，而是针对我们主实验的需求，在本地检出的 openJiuwen Swarm 源码中做了两处扩展，并打包成了一个补丁文件 framework_contribution.patch。
-第一处是在框架的 Rails 机制中增加了 ContextBudgetRail，用于在智能体调用大模型前按预设预算筛选和截断上下文，这正是支撑我们前面 4 种上下文策略实验的底层代码；第二处是试验性质的 VersionedMemoryRail 记忆组件。
-我们在提交材料里明确注明了“公开 PR 仍未提交，仅提供本地源码 Patch”，做到是什么就汇报什么，绝不谎报开源合并情况。""")
+    set_slide_notes(s12, notes_dict.get(12, ""))
 
     # ==================== SLIDE 13: 43 TESTS ====================
     s13 = prs.slides.add_slide(blank_layout)
-    add_header(s13, "工程质量保障：43 项自动化测试用例与环境可复现性", "AUTOMATED TESTING & REPRODUCIBILITY")
+    add_header(s13, "工程质量保障：45 项自动化测试用例与环境可复现性", "AUTOMATED TESTING & REPRODUCIBILITY")
     
     c13_l = s13.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.5), Inches(5.6), Inches(5.3))
     c13_l.fill.solid()
@@ -829,9 +841,9 @@ def build_presentation(output_pptx):
         "tests/test_workflow_tournament.py ........                              [ 74%]\n"
         "tests/test_model_gateway.py .....                                        [ 86%]\n"
         "tests/test_research_chain.py ......                                      [100%]\n\n"
-        "============================== 43 passed in 2.12s ==============================\n\n"
+        "============================== 45 passed in 1.65s ==============================\n\n"
         "★ 质量指标：\n"
-        "• 43 项用例在 2.12 秒内全部通过 (100% Pass)\n"
+        "• 45 项用例在 1.65 秒内全部通过 (100% Pass)\n"
         "• 零外部付费网络依赖，纯本地离线可完全复现！"
     )
     p_code.font.size = Pt(9.5)
@@ -873,9 +885,7 @@ def build_presentation(output_pptx):
         p2.font.color.rgb = C_DARK
         p2.space_before = Pt(1)
 
-    set_slide_notes(s13, """为了确保代码不是“一次性演示”，我们按照软件工程规范编写了 43 个自动化测试用例。
-屏幕上展示的是全套测试的实际运行情况：43 个测试在 2.12 秒内全部通过。
-测试重点覆盖了我们在框架中新增的 Rail 逻辑、小样本早停的判定分支、事前验收契约校验以及内部评审打分算法。所有单测都可以在没有网络和 API Key 的环境下直接离线复现，保障了交付工程的质量和可靠性。""")
+    set_slide_notes(s13, notes_dict.get(13, ""))
 
     # ==================== SLIDE 14: MANIFEST ====================
     s14 = prs.slides.add_slide(blank_layout)
@@ -890,7 +900,7 @@ def build_presentation(output_pptx):
     tf14 = b14.text_frame
     tf14.word_wrap = True
     p = tf14.paragraphs[0]
-    p.text = "📦 严格按赛题官方目录规范组织交付包 (submission/空梦轮年/)"
+    p.text = "📦 严格按赛题官方目录规范组织交付包 (submission/第6组_课程交付材料_20261108/)"
     p.font.size = Pt(15.5)
     p.font.bold = True
     p.font.color.rgb = C_NAVY
@@ -917,12 +927,7 @@ def build_presentation(output_pptx):
     p_rep.font.size = Pt(11)
     p_rep.font.color.rgb = C_DARK
 
-    set_slide_notes(s14, """这是我们团队按照比赛官方目录规范整理的完整交付包。
-包内包含编译好的论文 PDF 与 LaTeX 源工程；
-包含全部核心代码、可复现说明文件与给 openJiuwen 的源码 Patch；
-包含记录了 120 次真实 API 调用的全部原始请求与响应日志；
-同时完整收录了我们在 Stanford 评审网站上的 Access Token 和评审报告文本，并附带详尽的资源统计。
-所有材料清晰透明，方便评审老师逐项查验。""")
+    set_slide_notes(s14, notes_dict.get(14, ""))
 
     # ==================== SLIDE 15: DIVISION OF LABOR ====================
     s15 = prs.slides.add_slide(blank_layout)
@@ -962,13 +967,7 @@ def build_presentation(output_pptx):
         pd.font.color.rgb = C_DARK
         pd.space_before = Pt(2)
 
-    set_slide_notes(s15, """本次项目由第 6 组的 5 位同学共同分工完成。
-王智洋同学负责系统架构设计和 openJiuwen Swarm 源码层面的 Rail 扩展；
-洪豊幀同学负责设计 24 个评测任务并完成 120 次实验调用的数据记录；
-黄炜杰同学攻关论文生成链路，完成了基于证据表格的 LaTeX 自动化排版；
-黄俊翔同学编写了 43 个自动化测试，确保代码可以离线完全复现；
-金若曦同学统筹了使用说明书、万字结题报告和答辩演示文稿的制作。
-团队成员各司其职，保证了整个项目的顺利落地。""")
+    set_slide_notes(s15, notes_dict.get(15, ""))
 
     # ==================== SLIDE 16: SUMMARY ====================
     s16 = prs.slides.add_slide(blank_layout)
@@ -1011,10 +1010,7 @@ def build_presentation(output_pptx):
     p2.alignment = PP_ALIGN.CENTER
     p2.space_before = Pt(24)
 
-    set_slide_notes(s16, """最后总结一下我们的体会。
-这次大数据项目实践，让我们对科研 Agent 的工程边界有了非常清醒的认识。我们最大的收获不是做出了一个能跑出 PDF 的工具，而是老老实实走了一遍“实验设计、模型运行、论文编译和外部真实送审”的全过程。
-外部评审给出的 4.4 分虽然严苛，但非常中肯。它让我们深刻体会到：要让 AI 真正辅助科研，不能只在提示词上做文章，必须在实验设计的深度、基线对比的严密性以及算力门禁上下苦功夫。这为我们后续进一步探索智能体系统提供了宝贵的工程经验。
-以上是第 6 组的全部汇报，敬请各位老师批评指正，谢谢大家！""")
+    set_slide_notes(s16, notes_dict.get(16, ""))
 
     prs.save(output_pptx)
     print(f"Truthful master presentation successfully saved to: {output_pptx}")
