@@ -484,10 +484,10 @@ def build_presentation(output_pptx):
     p.font.color.rgb = C_NAVY
     
     rev_details = [
-        ("送审凭证完备", "按照赛题指南获取真实 Access Token，将生成的 paper.pdf 提交至 Stanford Agentic Reviewer (paperreview.ai) 进行机器盲审。"),
-        ("真实评测得分", "• 历史配置选择论文盲审得分：Estimated Score 为 3.7 / 10\n• 缺失数据研究论文盲审得分：Estimated Score 为 4.4 / 10\n（在 ICLR 官方严格审稿标尺下，该区间通常对应 Reject / Borderline 边缘）"),
-        ("评审专家客观批注 (Weaknesses 摘录)", "1. '实验完全依赖明确项目ID的合成任务，结论不能直接推论至真实多变的高噪声场景。'\n2. '检索机制过于简单（仅为精确词法匹配），缺乏与前沿密集向量检索或重排序模型的对比。'\n3. '缺乏深入的消融实验支撑，难以证明各组件在复杂分布下的鲁棒性。'"),
-        ("实事求是的态度", "这是完全真实的外部评测结果，我们将其完整保存在 submission/Agentic Reviewer/review.txt，绝不伪造高分，以此作为检验系统有效性的镜子。")
+        ("三轮真实送审成绩演进", "• 第 1 版 (长上下文选择论文): 3.7 / 10\n• 第 2 版 (特征缺失对比论文): 4.4 / 10\n• 第 3 版 (Pilot 剪枝推迟决策审计): 4.9 / 10 (稳步攀升，逼近 5.0 门禁线！)"),
+        ("最新 4.9 分双核心指标获 +1 评级", "• Claims_Support (论据支撑度): +1 (核心论点获充分实证支撑，数据确凿)\n• Experimental_Soundness (实验完备性): +1 (420 组多项式精确积分消除仿真噪声)\n• 官方送审凭据 Token: f6ZtvxO58wvyHxff-aQ1KZrPt3VPGupaSuP9QE86Zsw"),
+        ("评审专家批注 (Strengths & Weaknesses)", "✓ 'Exact multinomial integration systematically covers the full space... Reproducibility is strong with hashes and automated checks.'\n⚠️ 评审中肯指出：建议增加 McNemar/Newcombe 配对区间对比，并在更深真实 Agent trace 上进一步泛化。"),
+        ("实事求是与系统进化", "从最初 3.7 分被拒稿到 4.9 分稳步进阶，真实记录了团队通过事前契约与探针剪枝实现系统防御与学术严谨性进化的全过程。")
     ]
     for r_h, r_b in rev_details:
         pt = tf7.add_paragraph()
