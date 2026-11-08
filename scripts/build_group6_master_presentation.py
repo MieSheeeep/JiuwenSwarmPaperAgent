@@ -723,7 +723,7 @@ def build_presentation(output_pptx):
 
     # ==================== SLIDE 12: FRAMEWORK CONTRIBUTION ====================
     s12 = prs.slides.add_slide(blank_layout)
-    add_header(s12, "openJiuwen 框架贡献：ContextBudgetRail 与 VersionedMemory 源码扩展", "FRAMEWORK SOURCE CONTRIBUTIONS")
+    add_header(s12, "openJiuwen 框架扩展：本地源码修改与 Patch 补丁", "LOCAL FRAMEWORK EXTENSIONS & PATCH")
     
     col_w = Inches(5.6)
     col_h = Inches(5.3)
@@ -738,15 +738,15 @@ def build_presentation(output_pptx):
     tf12_l = b12_l.text_frame
     tf12_l.word_wrap = True
     p = tf12_l.paragraphs[0]
-    p.text = "🛡️ 贡献一：ContextBudgetRail (预算控制)"
+    p.text = "🛠️ 扩展一：ContextBudgetRail (预算控制)"
     p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = C_GREEN
     
     r1_items = [
         ("源码扩展位置", "jiuwenswarm/agents/harness/common/rails/context_budget_rail.py"),
-        ("核心功能", "在 Agent 调用大模型之前，根据调用方设定的 Token 预算上限，动态截取和组织历史对话。"),
-        ("内置支持策略", "支持全量历史、固定滑动窗口截断、基于项目 ID 的词法检索，以及可选的摘要注入接口。"),
+        ("核心功能", "在 Agent 调用大模型前，根据预设 Token 预算上限自动筛选和截断历史记录。"),
+        ("实验依托", "支撑了主实验中全量、最近窗口、按项目检索策略的自动化加载与测试。"),
         ("无侵入式设计", "作为可选 Rail 挂载在 openJiuwen ReActAgent 上，不破坏框架原有默认行为。")
     ]
     for h_txt, b_txt in r1_items:
@@ -771,16 +771,16 @@ def build_presentation(output_pptx):
     tf12_r = b12_r.text_frame
     tf12_r.word_wrap = True
     pr = tf12_r.paragraphs[0]
-    pr.text = "🧠 贡献二：VersionedMemory (版本化记忆)"
+    pr.text = "📝 交付形式：framework_contribution.patch"
     pr.font.size = Pt(14)
     pr.font.bold = True
     pr.font.color.rgb = C_SLATE
     
     r2_items = [
-        ("源码扩展位置", "jiuwenswarm/agents/harness/common/versioned_memory.py"),
-        ("核心功能", "为智能体的记忆条目增加版本标识与变更追踪能力，解决多轮交互中的状态覆盖问题。"),
-        ("实用价值", "支持多智能体协同场景下的记忆版本回溯与变更核对。"),
-        ("补丁交付规范", "整理导出为标准的 framework_contribution.patch，配齐单元测试，符合开源社区合入标准。")
+        ("赛题规则允许", "赛题 15 分框架贡献允许以代码、Skill、文档、PR 或 Patch 补丁形式提交。"),
+        ("客观事实声明", "团队未在开源社区提交公开 PR，而是将本地修改整理为标准的 patch 补丁。"),
+        ("第二项扩展尝试", "包含 VersionedMemoryRail（版本化长程记忆组件原型，防止多轮交互状态覆盖）。"),
+        ("配套测试保障", "补丁包含针对预算计算、截断与记忆逻辑的独立单元测试，代码完全开源。")
     ]
     for h_txt, b_txt in r2_items:
         p1 = tf12_r.add_paragraph()
@@ -795,10 +795,10 @@ def build_presentation(output_pptx):
         p2.font.color.rgb = C_DARK
         p2.space_before = Pt(2)
 
-    set_slide_notes(s12, """针对赛题 15 分的“框架贡献”指标，我们深入 openJiuwen Swarm 的底层源码，提交了两项实实在在的代码实现。
-第一项是 ContextBudgetRail，我们在框架的 Rails 拦截机制中增加了一个通用的上下文预算控制器，让任意 openJiuwen Agent 都可以在调用大模型前，按预算额度灵活选择历史记录，这正是我们主实验的核心依托；
-第二项是 VersionedMemoryRail，为智能体的长程记忆增加了版本管理能力，避免多 Agent 并发交互时产生数据相互覆盖。
-这两项修改已经整理成了标准的补丁文件 framework_contribution.patch，具备独立的单元测试，可以直接合入 openJiuwen 主干。""")
+    set_slide_notes(s12, """关于赛题中 15 分的“框架贡献”指标，这里需要实事求是地说明：
+赛题规则允许以“代码、Skill、文档、PR 或 Patch 补丁”等形式交付。我们团队并没有向 openJiuwen 官方仓库提交过公开 PR，而是针对我们主实验的需求，在本地检出的 openJiuwen Swarm 源码中做了两处扩展，并打包成了一个补丁文件 framework_contribution.patch。
+第一处是在框架的 Rails 机制中增加了 ContextBudgetRail，用于在智能体调用大模型前按预设预算筛选和截断上下文，这正是支撑我们前面 4 种上下文策略实验的底层代码；第二处是试验性质的 VersionedMemoryRail 记忆组件。
+我们在提交材料里明确注明了“公开 PR 仍未提交，仅提供本地源码 Patch”，做到是什么就汇报什么，绝不谎报开源合并情况。""")
 
     # ==================== SLIDE 13: 43 TESTS ====================
     s13 = prs.slides.add_slide(blank_layout)
