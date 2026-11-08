@@ -161,10 +161,38 @@ class MissingnessStudy:
             'protocol_note':'Selections made from validation only, before test scores; timing excludes fitting and is one run, not an end-to-end speed benchmark.'}
 
     def pilot(self,design):
+        from .gates import PilotGate
         self.check(design);item=design['datasets'][-1];data=np.load(self.directory/item['path'],allow_pickle=False)
         fields,selection=self.fit(data,SPLITS[0])
-        return {'passed':bool(np.isfinite(fields['a']).all()),'diagnostics':{'scope':'Yacht train/validation-only affine fit and selector probe; no held-out scoring',
-                'candidates':len(selection['names']),'train_rows':len(fields['train']),'validation_rows':len(fields['val'])}}
+        val_idx=fields['val'];xv=(data['x'][val_idx]-fields['mu'])/fields['scale'];yv=(data['y'][val_idx]-fields['ymu'])/fields['yscale']
+        mask_zero=np.zeros_like(xv,dtype=bool);preds=predict_pool(xv,mask_zero,fields)
+        cand_idx=selection['selected']['analytic_minimax'];clean_idx=selection['selected']['clean']
+        cand_mse=float(np.mean((preds[:,cand_idx]-yv)**2));clean_mse=float(np.mean((preds[:,clean_idx]-yv)**2))
+        native=HistGradientBoostingRegressor(max_iter=50,random_state=SPLITS[0]).fit(fields['observed_train'],fields['train_y'])
+        native_mse=float(np.mean((native.predict(xv)-yv)**2))
+
+        probe={
+            'candidate_metric':cand_mse,
+            'baseline_metric':clean_mse,
+            'out_of_pool_metric':native_mse,
+            'out_of_pool_name':'HistGradientBoosting',
+            'execution_health':bool(np.isfinite(fields['a']).all()),
+            'diagnostics':{'scope':'Yacht train/validation probe','candidates':len(selection['names']),
+                           'train_rows':len(fields['train']),'validation_rows':len(fields['val'])}
+        }
+        acceptance={
+            'min_delta':0.01,
+            'metric_direction':'lower_is_better',
+            'out_of_pool_domination_margin':0.05
+        }
+        decision=PilotGate.evaluate(probe,acceptance,allow_pivot=False)
+        return {
+            'passed':decision.passed,
+            'decision':decision.decision,
+            'reason':decision.reason,
+            'metrics':decision.metrics,
+            'diagnostics':decision.diagnostics
+        }
 
     def run(self,design):
         self.check(design);self.root.mkdir(parents=True,exist_ok=True)

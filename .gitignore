@@ -50,3 +50,5 @@ Thumbs.db
 /output/generic_qa_*/
 /output/public_qa_*/
 /output/framework_*/
+/output/trial_*/
+/research/workflow/missingness_study/data/
