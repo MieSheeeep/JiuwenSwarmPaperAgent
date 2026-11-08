@@ -96,7 +96,7 @@ def build_presentation(output_pptx):
     ctf = c1.text_frame
     ctf.word_wrap = True
     cp1 = ctf.paragraphs[0]
-    cp1.text = "汇报小组：第 6 组   |   战队账号：空梦轮年   |   福州大学 计算机与大数据学院"
+    cp1.text = "汇报小组：大数据项目实践 · 第 6 组   |   福州大学 计算机与大数据学院"
     cp1.font.size = Pt(15.5)
     cp1.font.bold = True
     cp1.font.color.rgb = C_WHITE
@@ -116,7 +116,7 @@ def build_presentation(output_pptx):
     cp3.alignment = PP_ALIGN.CENTER
     cp3.space_before = Pt(8)
 
-    set_slide_notes(s1, """各位评委老师、同学们，大家好！我们是第 6 组，战队账号是“空梦轮年”。
+    set_slide_notes(s1, """各位评委老师、同学们，大家好！我们是第 6 组。
 今天我们汇报的题目是《基于 JiuwenSwarm 的 Agent 科研论文自动生成系统》。
 本项目依托华为开源多智能体框架 openJiuwen，搭建了一套连接文献调研、实验执行、数据提取与论文编译的自动化流水线，完成了一项真实的上下文选择策略实验，生成了规范的英文学术论文，并按赛题要求提交至外部第三方评审平台进行了实际评测。
 接下来，我们将实事求是地向大家汇报我们的系统设计、真实运行数据、外部盲审反馈以及我们为 openJiuwen 框架做出的源码扩展。""")
