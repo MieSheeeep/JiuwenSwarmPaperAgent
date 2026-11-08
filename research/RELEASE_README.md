@@ -16,6 +16,6 @@ python -c "from research.memory_analysis import analyze_memory; print(analyze_me
 
 主模块：memory_run（协议/实际 Rail 调用）、model_gateway（预留/计账/恢复）、memory_dataset（独立参考答案）、memory_analysis（复算）、memory_paper（证据/写稿/源码事实校正）、orchestrator（有限流程）。历史 baseline 导入仍使用 `python -m research import-baseline`。
 
-框架源文件在 `upstream/jiuwenswarm/agents/harness/common/`。它们是 opt-in 扩展，运行器按文件加载，不改用户安装目录。源码贡献 patch 单独提供，尚未提交上游 PR。
+项目适配源码在 `upstream/jiuwenswarm/agents/harness/common/`。它们基于现有 AgentRail 接口，按需启用，运行器按文件加载，不改用户安装目录。本地 patch 单独提供，尚未提交上游 PR，未验证广泛通用性；完整桌面及 Swarm 装配不在已验证范围内。实现与测试口径以 `framework_contribution.md` 为准。
 
 结果与方法边界见 docs/memory_release_20261016.md。当前新稿是受控结构化记忆实验，不是通用记忆系统或真实对话基准；外部评审状态另见 Agentic Reviewer/status.md。

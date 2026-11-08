@@ -2,12 +2,14 @@ import pptx
 import re
 import sys
 
-pptx_path = "runtime/test_out.pptx"
+sys.stdout.reconfigure(encoding='utf-8')
+pptx_path = sys.argv[1] if len(sys.argv) > 1 else "submission/第6组_课程交付材料_20261108/第6组项目汇报PPT.pptx"
 prs = pptx.Presentation(pptx_path)
+print(f"Verifying {pptx_path}...")
 
 banned_words = [
     "自研写作引擎", "自主学术写作引擎", "对标 ICLR", "对标ICLR",
-    "首创", "已提交PR", "已提交 PR", "战队", "空梦轮年"
+    "首创", "已提交PR", "已提交 PR", "战队", "空梦轮年", "19项"
 ]
 
 all_text = ""
@@ -16,6 +18,9 @@ for idx, slide in enumerate(prs.slides):
     for shape in slide.shapes:
         if shape.has_text_frame:
             slide_text.append(shape.text_frame.text)
+        elif shape.has_table:
+            for r in shape.table.rows:
+                slide_text.extend([c.text for c in r.cells])
         elif shape.shape_type == pptx.enum.shapes.MSO_SHAPE_TYPE.GROUP:
             for child in shape.shapes:
                 if child.has_text_frame:
