@@ -72,10 +72,18 @@ class MissingnessProfile(ConnectedProfile):
                 'splits':len(records),'sampled27_ms_median':float(np.median([r['sampled27_ms'] for r in records])),
                 'integrated_coefficients_plus_envelope_ms_median':float(np.median([r['integrated_with_coefficients_ms'] for r in records])),
                 'split_counts':[r['split_counts'] for r in records]})
+        stress=[]
+        for dataset in primary:
+            for condition in ('mcar_0.3','block_0.3','mar_0.3'):
+                base=next(r for r in a['metrics'] if (r['dataset'],r['condition'],r['method'])==(dataset,condition,'clean'))
+                selected=next(r for r in a['metrics'] if (r['dataset'],r['condition'],r['method'])==(dataset,condition,'analytic_minimax'))
+                stress.append([dataset,condition,selected['nrmse_mean']-base['nrmse_mean'],base['actual_missing_fraction']])
         return {'question':inputs['question'],'datasets':d['datasets'],'protocol':{k:v for k,v in d.items() if k not in ('datasets','code_sha256')},
             'primary_p50_columns':['policy','mean_split_nrmse','sd_split_nrmse','mean_regret_pool_normalized_mse'],
             'primary_p50':primary,'curve_columns':['dataset','policy','clean','mcar_0.1','mcar_0.3','mcar_0.5','block_0.3','mar_0.3'],
             'curves':curves,'paired_intervals':a['paired_intervals'],'validation_timing_and_choices':timing,
+            'stress_columns':['dataset','condition','integrated_minus_clean_nrmse','actual_missing_fraction'],
+            'stress_results':stress,
             'theory':a['theory'],'limitations':a['limitations'],'audit':a['audit'],'resources':a['resources'],
             'source_papers':inputs['literature']['sources'],'measured_rows_hash':a['rows_hash'],
             'figure_captions':[f['caption'] for f in a['figures']],'table_captions':[t['caption'] for t in a['tables']],
@@ -127,21 +135,24 @@ class MissingnessProfile(ConnectedProfile):
                 outline=await self.json('Plan a research paper with these exact headings: '+', '.join(HEADINGS)+'. Return outline (under 400 words) and limitations. Center the exact finite-validation risk identity, controlled model selection comparison, all observed outcomes and limits. No claim of a new general theorem or universal robust prediction.',evidence,'writing/outline')
                 save_json(self.directory/'outline.json',outline)
                 value=await self.json('Write an English research manuscript about mask-integrated validation for selecting fixed linear predictors under missingness-rate shift. Return title,sections (list of heading,text),references (list of known source IDs). Use exactly: '+', '.join(HEADINGS)+'. Aim 2400-3200 words total. Full paragraphs, no raw TeX or markdown tables. Code inserts measured tables, two quantitative figures and the exact equations under Methods. Explain the short proof in words and refer to the displayed identity. Sources are prior work; acknowledge expected-loss/dropout algebra is established. No unsupported first/novel/SOTA claims. This study uses four datasets from three families and five overlapping feature-group splits, not twenty independent populations. Explain twelve common candidates, validation selection, exact-vs-grid control, known-p diagnostic, label-informed pool oracle, nonlinear references outside the pool, target normalization, conditional bootstrap limits, and outside-MCAR stress. Cite sources as [ID]. Report positive, null and negative outcomes; avoid claiming broad superiority from one dataset. Timing excludes fitting and is not end-to-end speed. Do not quote full hashes. Avoid guarantees that extend finite-validation mask integration to population risk or correlated/MAR missingness.',
-                    {'evidence':evidence,'outline':outline},'writing/draft')
+                    {'evidence':evidence,'outline':outline,
+                     'display_equation_numbering':'Code inserts predictor (1), e/d definitions (2), expected-loss identity (3), quadratic risk (4), coefficients (5). Refer to the identity as (3), or avoid numbering. No equation gives a population-risk guarantee.'},'writing/draft')
                 save_json(self.directory/'model_draft_capture.json',value)
                 if {s['heading'] for s in value['sections']}!=set(HEADINGS):raise ValueError('Manuscript heading mismatch')
                 if sum(len(s['text'].split()) for s in value['sections'])<1800:raise ValueError('Manuscript too short')
                 canonical={p['id']:p for p in inputs['literature']['sources']}
-                if any(r.get('id') not in canonical for r in value['references']):raise ValueError('Unknown reference')
-                value['references']=[{k:canonical[r['id']][k] for k in ('id','title','authors','published','url')} for r in value['references']]
+                reference_ids=[r if isinstance(r,str) else r.get('id') for r in value['references']]
+                if any(identifier not in canonical for identifier in reference_ids):raise ValueError('Unknown reference')
+                value['references']=[{k:canonical[identifier][k] for k in ('id','title','authors','published','url')} for identifier in reference_ids]
             value.update(evidence_hash=Workflow(self.directory).state['stages']['analysis']['sha256'],
                 figures=copy.deepcopy(inputs['analysis']['figures']),tables=copy.deepcopy(inputs['analysis']['tables']))
         elif stage=='review':
             audit=self.study.audit(inputs['design'])
             if context.feedback and (self.directory/'last_missingness_patch.json').exists():
                 patch=json.loads((self.directory/'last_missingness_patch.json').read_text(encoding='utf-8'))
-                facts=self.evidence(inputs);facts.pop('source_papers',None)
-                value=await self.json('Check these targeted repairs against the earlier issues and measured facts. Return decision (accept|revise|stop),issues (at most two {section,issue,evidence,repair}). Under 600 words. This is a focused follow-up, not fresh whole-paper review. Do not expand to new experiments or invent scientific requirements.',
+                all_facts=self.evidence(inputs)
+                facts={k:all_facts[k] for k in ('primary_p50','paired_intervals','stress_results','stress_columns','theory','critical_definitions')}
+                value=await self.json('Check these changed excerpts against earlier issues and measured facts. Return decision (accept|revise|stop),issues (at most two {section,issue,evidence,repair}). Entire JSON under 180 words. Previously correct algebra and correctly rounded tables need no repair. Operator also corrected overstatements about equal selections and stress-test gains; check these against facts. This is a focused follow-up, not fresh whole-paper review. Do not expand to new experiments or invent scientific requirements.',
                     {'revised_sections':patch['replacements'],'earlier_issues':context.feedback[-1]['issues'],'facts':facts},'review/patch_audit')
                 value['scope']='Focused Flash follow-up after prior manuscript audit, with actual local metric/prediction replay.'
             else:

@@ -1,4 +1,6 @@
 import itertools
+import tempfile
+from pathlib import Path
 import unittest
 import numpy as np
 from research.workflow.missingness_study import expected_losses,risk_coefficients,worst_quadratic,select_policy,predict_pool
@@ -40,6 +42,19 @@ class MissingnessTests(unittest.TestCase):
         for i in range(4):
             expected=model['b'][i]+np.where(mask,model['fill'][:,i],x)@model['a'][:,i]+mask@model['c'][:,i]
             np.testing.assert_allclose(result[:,i],expected,atol=1e-12)
+
+    def test_saved_prediction_tampering_is_rejected(self):
+        from research.workflow import missingness_study
+        from research.artifacts import digest,file_digest
+        with tempfile.TemporaryDirectory() as d:
+            study=missingness_study.MissingnessStudy(d)
+            study.prepare=lambda:{'dataset':'fixture'}
+            design={'dataset':'fixture','code_sha256':file_digest(Path(missingness_study.__file__))}
+            path=Path(d)/'prediction.npz';path.write_bytes(b'fixture')
+            value={'design_sha256':digest(design),'rows':[],'rows_sha256':digest([]),'files':{'prediction.npz':file_digest(path)}}
+            study.verify(value,design)
+            path.write_bytes(b'modified')
+            with self.assertRaises(ValueError):study.verify(value,design)
 
 
 if __name__=='__main__':unittest.main()
