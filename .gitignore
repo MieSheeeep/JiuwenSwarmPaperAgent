@@ -48,6 +48,11 @@ Thumbs.db
 /output/claim_revision_*/
 /output/workbench_analysis_*/
 /output/generic_qa_*/
+
+# Local ppt-master workspace and git clone
+/ppt-master/
+/projects/
+
 /output/public_qa_*/
 /output/framework_*/
 /output/trial_*/

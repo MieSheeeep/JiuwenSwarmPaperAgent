@@ -28,7 +28,10 @@ def read_jsonl(path):
     if not path.exists():
         return []
     try:
-        return [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
+        # JSONL records end at ASCII LF. PDF text can contain literal U+2028,
+        # U+2029 or U+0085 inside a valid JSON string; str.splitlines would
+        # split those source characters and misdiagnose known spend as unknown.
+        return [json.loads(line) for line in path.read_text(encoding='utf-8').split('\n') if line.strip()]
     except ValueError as error:
         raise UnknownSpend(f'Interrupted or invalid ledger at {path.name}; reconcile before spending') from error
 

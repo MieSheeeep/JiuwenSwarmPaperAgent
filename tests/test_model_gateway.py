@@ -134,3 +134,9 @@ class GatewayTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+def test_jsonl_preserves_unicode_line_separators_in_source_text(tmp_path):
+    from research.model_gateway import append_durable, read_jsonl
+    path=tmp_path/'calls.jsonl'
+    row={'output':'PDF passage\u2028next line\u2029paragraph\u0085continued','usage':{'total_tokens':3}}
+    append_durable(path,row)
+    assert read_jsonl(path)==[row]
