@@ -3,9 +3,11 @@ from .engine import Workflow, StageResult, STAGES
 from .registry import Registry
 from .gates import TopicGate, TopicCandidate, PilotGate, PilotDecision
 from .conference_review import ConferenceReviewPanel, ReviewerReport
+from .priors import NegativePriors, NegativePrior
 
 __all__ = [
     'Workflow', 'StageResult', 'STAGES', 'Registry',
     'TopicGate', 'TopicCandidate', 'PilotGate', 'PilotDecision',
-    'ConferenceReviewPanel', 'ReviewerReport'
+    'ConferenceReviewPanel', 'ReviewerReport',
+    'NegativePriors', 'NegativePrior'
 ]
