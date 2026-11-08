@@ -19,7 +19,7 @@ def object_json(text):
 
 class ConnectedProfile:
     """Wire all phases to source/model/adapter/writer services, sharing one ledger."""
-    def __init__(self, directory, *, model=None, client=None, compiler=None, config_dir=None, data_service=None, releaser=None):
+    def __init__(self, directory, *, model=None, client=None, compiler=None, config_dir=None, data_service=None, releaser=None, conference_review=True):
         self.directory=Path(directory).resolve()
         self.model=model or JiuwenBackend(config_dir)
         self.client=client
@@ -29,6 +29,7 @@ class ConnectedProfile:
         self.data_service=data_service or DataService(self.directory)
         self.releaser=releaser
         self.skills=SkillPack()
+        self.conference_review=conference_review
 
     async def ask(self,messages,tag):
         self.counter+=1
@@ -217,10 +218,25 @@ class ConnectedProfile:
                     raise ValueError('Review method source changed')
                 design['released_method_source']=path.read_text(encoding='utf-8')
             dataset=[{k:t[k] for k in ('id','split','answer')} for t in self.adapter()._load()]
-            value=await cold_review(self.directory,{'manuscript':inputs['writing'],
+            material={'manuscript':inputs['writing'],
                 'design':design,'results':inputs['experiment']['results'],
-                'metrics':inputs['analysis']['metrics'],'dataset':dataset},self.json)
+                'metrics':inputs['analysis']['metrics'],'dataset':dataset}
+            value=await cold_review(self.directory,material,self.json)
             save_json(self.directory/'model_review_capture.json',value)
+            if self.conference_review:
+                from .conference_review import run_conference_panel
+                conf=await run_conference_panel(self.directory,material,self.json)
+                combined_issues=list(value.get('issues',[]))
+                for iss in conf.get('issues',[]):
+                    if iss not in combined_issues:combined_issues.append(iss)
+                decision=value.get('decision','stop')
+                target=value.get('target')
+                if conf['decision']=='stop':
+                    decision='stop';target=None
+                elif conf['decision']=='revise' and decision=='accept':
+                    decision='revise';target=conf.get('target','writing')
+                value.update(decision=decision,issues=combined_issues,target=target,
+                             conference_review=conf,scores=conf.get('scores',{}))
         elif stage=='export':
             value=self.compiler(inputs['writing'])
             # Compilation is an objective check, not a claim of scientific peer review.

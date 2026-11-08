@@ -4,14 +4,14 @@ from .engine import REQUIRED, StageResult, STAGES
 
 ROLES = {
     'literature': 'Search real papers, read sources and compare methods and limitations. Record reading_scope. Cite only returned sources.',
-    'question': 'Identify a testable question, hypothesis, known source IDs and falsification. Novelty remains unverified.',
-    'design': 'Freeze data splits, baselines, ablations, metrics, acceptance and total resource budget.',
+    'question': 'Identify a testable question, hypothesis, known source IDs, explicit theoretical delta beyond prior art, and falsification.',
+    'design': 'Freeze data splits, in-pool baselines, strong out-of-pool references, ablations, metrics, acceptance (with minimal effect size delta_min), and total resource budget.',
     'implementation': 'Implement through registered development tools. Verify adapter/version/capabilities. Missing tools mean blocked.',
-    'pilot': 'Run a development-only pilot through registered tools. Report passed and diagnostics. No test-label tuning.',
+    'pilot': 'Run a development-only pilot through registered tools. Compare candidate vs in-pool and out-of-pool baselines. Return decision (go|pivot|no_go), passed (bool), reason, metrics, and diagnostics. No test-label tuning.',
     'experiment': 'Execute frozen design through registered tools. Gold labels are scoring only. Return actual results, protocol_hash and resources.',
-    'analysis': 'Recompute metrics from raw results. Link claims to evidence; include negative results and uncertainty.',
+    'analysis': 'Recompute metrics from raw results. Link claims to evidence; include negative results, effect size, and uncertainty.',
     'writing': 'Create an outline then full manuscript with registered writing tools, measured analysis, verified references and limitations.',
-    'review': 'Audit sources, implementation, results, costs and manuscript. Accept, stop, or request revision to a named earlier stage.',
+    'review': 'Audit sources, implementation, results, costs and manuscript across top-tier conference rubrics (soundness, novelty, significance, empirical thoroughness) and hard floors. Accept, stop, or request revision to a named earlier stage.',
     'export': 'Compile and inspect paper; assemble deliverables through tools. Check docs, resources, patch and review identity.',
 }
 

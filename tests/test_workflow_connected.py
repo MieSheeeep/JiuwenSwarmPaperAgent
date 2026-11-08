@@ -48,6 +48,9 @@ class ConnectedTests(unittest.TestCase):
                     'references':[{'id':'s1','title':'First source','url':'https://example.org/1'}]}
                 elif tag=='review/cold/meta':value={'decision':'accept','issues':[],'adjudications':[]}
                 elif tag.startswith('review/cold/'):value={'findings':[]}
+                elif tag.startswith('review/conference/'):value={
+                    'soundness':8.0,'novelty':7.5,'significance':7.5,'empirical':8.0,'overall':7.8,
+                    'summary':'Passes all conference rubrics.','strengths':['Solid'],'weaknesses':[],'questions':[],'flags':[]}
                 else:raise AssertionError(tag)
                 return {'id':str(len(sent)),'output':json.dumps(value),'usage':{'total_tokens':5}}
             def compile_fixture(manuscript):
@@ -65,6 +68,8 @@ class ConnectedTests(unittest.TestCase):
             self.assertIn('Prepare Conference Manuscripts',draft[0]['content'])
             self.assertIn('authoritative_facts',draft[1]['content'])
             self.assertEqual(w.artifact('review')['payload']['decision'],'accept')
+            self.assertIn('conference_review', w.artifact('review')['payload'])
+            self.assertGreaterEqual(w.artifact('review')['payload']['scores']['overall'], 7.0)
             skill_tags={json.loads(p.read_text())['tag'] for p in (w.directory/'skill_usage').glob('*.json')}
             self.assertIn('writing/draft',skill_tags)
             self.assertIn('review/cold/meta',skill_tags)
