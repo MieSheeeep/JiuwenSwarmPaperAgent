@@ -167,30 +167,6 @@ class TestWorkflowGates(unittest.TestCase):
             events = [e['event'] for e in w.state['events']]
             self.assertIn('pilot_pruned', events)
 
-    def test_negative_priors_blocks_repeating_flawed_topic(self):
-        from research.workflow.priors import NegativePriors
-        priors = NegativePriors()
-
-        # A topic that matches the flawed missingness 4.4 pattern
-        candidate = TopicCandidate(
-            id="c_repeat_missingness",
-            title="Mask-Integrated Validation for Selecting Linear Predictors under MCAR",
-            hypothesis="Using expected loss algebra to select affine models on UCI Yacht housing",
-            theoretical_delta="Re-derives Wager dropout identity for linear prediction under MCAR",
-            prior_work_comparison=[{"reference": "Wager2013", "difference": "None"}],
-            baseline_risk="GBDT beats it",
-            feasibility_score=4.5,
-            novelty_score=4.0,  # even if given a generous novelty score
-            significance_score=4.0,
-        )
-
-        res = TopicGate.evaluate([candidate], priors=priors)
-        self.assertFalse(res.admitted)
-        self.assertIn("c_repeat_missingness", res.rejection_reasons)
-        reasons_text = " ".join(res.rejection_reasons["c_repeat_missingness"])
-        self.assertIn("Matches known failure prior", reasons_text)
-        self.assertIn("prior_dropout_mcar_linear_selection", reasons_text)
-
 
 if __name__ == '__main__':
     unittest.main()

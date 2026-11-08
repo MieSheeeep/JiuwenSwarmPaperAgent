@@ -35,8 +35,7 @@ class TopicGate:
                  *,
                  min_novelty: float = 3.5,
                  min_significance: float = 3.0,
-                 min_feasibility: float = 3.0,
-                 priors=None) -> TopicAdmissionResult:
+                 min_feasibility: float = 3.0) -> TopicAdmissionResult:
         if not candidates:
             return TopicAdmissionResult(
                 admitted=False,
@@ -51,12 +50,6 @@ class TopicGate:
 
         for c in candidates:
             reasons = []
-            # Check negative failure priors
-            if priors:
-                matched = priors.check_candidate(f"{c.title} {c.hypothesis} {c.theoretical_delta}")
-                for mp in matched:
-                    reasons.append(f"Matches known failure prior '{mp.id}': {mp.avoidance_rule}")
-
             # Check delta declaration
             delta_text = (c.theoretical_delta or "").strip().lower()
             if len(delta_text) < 15 or any(w in delta_text for w in ["none", "trivial", "n/a", "no change", "re-apply only"]):

@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Callable, Any
 
 from .gates import TopicGate, TopicCandidate, TopicAdmissionResult, PilotGate, PilotDecision
-from .priors import NegativePriors
 from .engine import Workflow, StageResult
 
 
@@ -25,14 +24,12 @@ class TopicTournament:
     @staticmethod
     def evaluate_pool(candidates: List[TopicCandidate],
                       *,
-                      priors: Optional[NegativePriors] = None,
                       min_novelty: float = 3.5,
                       min_significance: float = 3.0) -> TournamentResult:
         admission = TopicGate.evaluate(
             candidates,
             min_novelty=min_novelty,
-            min_significance=min_significance,
-            priors=priors
+            min_significance=min_significance
         )
 
         if not admission.admitted or not admission.selected_candidate:
@@ -69,14 +66,11 @@ class TopicTournament:
     async def generate_candidates(topic_prompt: str,
                                   ask: Callable,
                                   *,
-                                  priors: Optional[NegativePriors] = None,
                                   count: int = 3) -> List[TopicCandidate]:
         """Uses LLM to brainstorm `count` distinct research angles with explicit theoretical deltas."""
-        prior_guidance = priors.prompt_guidance() if priors else ""
         prompt = (
             f"You are a Senior Principal Research Scientist. Brainstorm {count} distinct, competitive research proposals "
             f"for the following theme:\n{topic_prompt}\n\n"
-            f"{prior_guidance}\n\n"
             "CRITICAL INSTRUCTIONS:\n"
             "1. Each candidate must have a concrete, substantive theoretical_delta beyond standard textbook identities.\n"
             "2. Assess baseline_risk honestly: could a simple off-the-shelf model (like GBDT/KNN) beat it easily?\n"
@@ -114,19 +108,17 @@ class AutonomousResearchOrchestrator:
                  candidates: List[TopicCandidate],
                  registry_factory: Callable[[Path, TopicCandidate], Any],
                  *,
-                 priors: Optional[NegativePriors] = None,
                  max_fallbacks: int = 2):
         self.base_directory = Path(base_directory).resolve()
         self.candidates = list(candidates)
         self.registry_factory = registry_factory
-        self.priors = priors or NegativePriors()
         self.max_fallbacks = max_fallbacks
         self.history: List[Dict] = []
 
     async def run(self, *, until: Optional[str] = None) -> Dict:
         """Runs the research pipeline with automated fallback if PilotGate triggers pruning."""
         # 1. Run Tournament to rank candidates
-        tournament = TopicTournament.evaluate_pool(self.candidates, priors=self.priors)
+        tournament = TopicTournament.evaluate_pool(self.candidates)
         if not tournament.admitted or not tournament.winner:
             return {
                 'status': 'tournament_failed',
@@ -171,17 +163,6 @@ class AutonomousResearchOrchestrator:
                 pilot_art = w.artifact('pilot')['payload']
                 reason = pilot_art.get('reason', 'Pilot NO-GO')
                 record['pruning_reason'] = reason
-
-                # Auto-record failure into negative priors
-                prior_id = f"prior_pruned_{active_candidate.id}"
-                self.priors.record_failure(
-                    prior_id=prior_id,
-                    pattern=f"{active_candidate.title} - {active_candidate.theoretical_delta}",
-                    source="PilotGate Early Pruning",
-                    failure_mode=reason,
-                    avoidance_rule=f"Pruned during pilot validation: {reason}"
-                )
-
                 self.history.append(record)
 
                 if queue and attempts <= self.max_fallbacks:

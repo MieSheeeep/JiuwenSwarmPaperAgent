@@ -6,7 +6,6 @@ from research.workflow import (
     TopicCandidate, TopicTournament, AutonomousResearchOrchestrator,
     Registry, StageResult
 )
-from research.workflow.priors import NegativePriors
 
 
 class TestTournamentAndOrchestrator(unittest.TestCase):
@@ -83,8 +82,6 @@ class TestTournamentAndOrchestrator(unittest.TestCase):
                 significance_score=4.2
             )
 
-            priors = NegativePriors(base_dir / "priors.json")
-
             def make_registry(project_dir, candidate):
                 r = Registry()
                 r.stage('literature', lambda c: StageResult({
@@ -124,7 +121,6 @@ class TestTournamentAndOrchestrator(unittest.TestCase):
                 base_dir,
                 candidates=[c2_sound, c1_flawed],
                 registry_factory=make_registry,
-                priors=priors,
                 max_fallbacks=2
             )
 
@@ -140,10 +136,6 @@ class TestTournamentAndOrchestrator(unittest.TestCase):
             self.assertEqual(result['attempts'], 2)
             self.assertEqual(result['history'][0]['status'], 'pruned')
             self.assertEqual(result['history'][1]['status'], 'ready')
-
-            # Verify that candidate 1's failure was recorded into negative priors automatically
-            prior_ids = [p.id for p in priors.priors]
-            self.assertIn("prior_pruned_c1_flawed", prior_ids)
 
 
 if __name__ == '__main__':
